@@ -111,11 +111,11 @@
         <hr>
 
         {% comment %} tag {% endcomment %}
-{#      QuerySet에는 exists 사용 가능. 일반 list에는 exists 없음#}
+{# QuerySet에는 exists 사용 가능. 일반 list에는 exists 없음 #}
         {% if post.tag.exists %}
           <i class="fas fa-tags">
             태그 목록<br/>
-{#          post.tag.all 대신 post.tag.iterator도 가능함 #}
+{# post.tag.all 대신 post.tag.iterator도 가능함 #}
             {% for tag in post.tag.all %}
               <a href="{{tag.get_absolute_url}}">{{tag}}</a><br />
             {% endfor %}

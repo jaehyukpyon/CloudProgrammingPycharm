@@ -1,0 +1,145 @@
+dict에서 없는 키로 dict1['key1']과 같이 접근 시 오류 발생
+
+dict1.get('key1')
+만약 'key1'이 없는 키 값이라면 바로 위와 같이 접근 시 오류 없음. type은 NoneType
+
+post1 = Post.objects.all() -> QuerySet
+했을 때 저장된 post가 한 개면
+post1.get() 했을 때 오류 없음. (post1.get() 했을 때 model 객체 그 자체)
+다만 여러 개라면 post1.get()했을 때 오류 발생
+
+dict1['newKey'] = 'newValue' 로 새로운 키 할당과 값 할당이 가능함
+
+form = PostFormTest(data={'title': 'title3', 'content': 'content3', 'author': '1', 'tag': ['1',]})
+form.is_valid() -> True
+
+form.is_valid() 호출 전에
+form.save(commit=False)
+form.save() 가능은 하다.
+but 데이터가 무조건 "유효(validate)" 해야 함
+즉 데이터 유효성 검사를 통과해야 함
+만약 데이터가 validate 하지 않다면 에러 발생
+
+form = PostFormTest(data={'title': 'title5', 'content': 'content5', 'author': '1'})
+form.is_valid() False
+b/c tag field is must required!
+
+form3 = Post.objects.create(title='hello', content='world', author=user1)
+-> db에 정상적으로 저장된다.
+
+
+>>> form = PostFormTest(data={'title': ['tafasdfas'], 'content': ['bsbdsbd'], 'author': '1', 'tag': [1]})
+>>> form.is_valid()
+True
+
+>>> form = PostFormTest(data={'title': ['tafasdfas'], 'content': ['bsbdsbd'], 'author': '33', 'tag': [1]})
+>>> form.is_valid()
+False
+>>> form.errors
+{'author': ['Select a valid choice. That choice is not one of the available choices.']}
+
+
+
+
+
+
+>>> postform = PostFormTest(data={'title': 'hello?', 'content': 'helloContent?', 'author': '1', 'tag': ['1']})
+>>> postform.instance
+<Post: pk=None, title=, created_at=None>
+
+>>> postform2 = PostFormTest(data={'title': 'hello?', 'content': 'helloContent?', 'tag': ['1']})
+>>> postform2.instance
+<Post: pk=None, title=, created_at=None>
+>>> postform2.save()
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+  File "C:\Users\theja\Documents\CloudProgrammingPycharm\venv\lib\site-packages\django\forms\models.py", line 533, in save
+    raise ValueError(
+ValueError: The Post could not be created because the data didn't validate.
+
+>>> test = postform2.save(commit=False)
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+  File "C:\Users\theja\Documents\CloudProgrammingPycharm\venv\lib\site-packages\django\forms\models.py", line 533, in save
+    raise ValueError(
+ValueError: The Post could not be created because the data didn't validate.
+
+ModelForm 객체를 상속받았으면,
+그 form 이 is_valid() 를 호출했을 때 false일지라도,
+form.instance 를 호출해서 그 DB Model 객체를 갖고올 수 있다.
+그래서 form.instance.author = user1
+과 같이 부족한 부분을 채워서 form.instance.save()를 호출하면 db에 잘 저장이 된다.
+다만 그것은 form 객체의 is_valid()를와 무관하다.
+즉, form.instance.save()를 호출해서 db에 잘 저장이 됐어도,
+form.is_valid()는 여전히 false 일 수 있다는 것이다.
+그러니깐
+form.data['author'] = '1'과 같이 부족한 부분을 채워줘야
+form.is_valid()를 했을 때 True가 나온다...
+
+
+>>> post = Post.objects.get(pk=1)
+>>> type(post)
+<class 'blog.models.Post'>
+>>> post.tag
+<django.db.models.fields.related_descriptors.create_forward_many_to_many_manager.<locals>.ManyRelatedManager object at 0x0000025A2D4091F0>
+-> QuerySet이 아님에 주의!
+
+
+post_form.save()는
+post_form.instance를 기반으로 실행한다?
+
+>>> post_form_1 = PostFormTest2(data={'title': 'with', 'content': 'with', 'tag': ['1',]})
+>>> post_form_2 = PostFormTest2(data={'title': 'with', 'content': 'with', 'tag': ['1',]})
+>>> post_form_1.instance == post_form_2.instance
+False
+>>> post_form_1.instance == post_form_1.save(commit=False)
+True
+
+
+>>> f1 = PostFormTest(data={'title': 't1', 'content': 't1', 'tag': ['1']})
+>>> i1 = f1.instance
+>>> i1
+<Post: pk=None, title=, created_at=None>
+>>> f1.save()
+Traceback (most recent call last):
+  File "<console>", line 1, in <module>
+  File "C:\Users\theja\Documents\CloudProgrammingPycharm\venv\lib\site-packages\django\forms\models.py", line 533, in save
+    raise ValueError(
+ValueError: The Post could not be created because the data didn't validate.
+>>> i1.author = user1
+>>> i1.save()
+>>> f1.instance
+<Post: pk=12, title=t1, created_at=2023-04-22 16:12:34.377221>
+>>> i1
+<Post: pk=12, title=t1, created_at=2023-04-22 16:12:34.377221>
+>>> f1
+<PostFormTest bound=True, valid=False, fields=(title;content;author;tag)>
+>>> i1
+<Post: pk=12, title=t1, created_at=2023-04-22 16:12:34.377221>
+>>> f1
+<PostFormTest bound=True, valid=False, fields=(title;content;author;tag)>
+>>> f1.instance
+<Post: pk=12, title=t1, created_at=2023-04-22 16:12:34.377221>
+>>> i1
+<Post: pk=12, title=t1, created_at=2023-04-22 16:12:34.377221>
+>>> f1.instance == i1
+True
+>>> f1.is_valid()
+False
+
+
+
+
+
+>>> ff1 = PostFormTest(data={'content': 'c1', 'tag': ['1'], 'author': '1'})
+>>> ff1.is_valid()
+False
+>>> ff1.errors
+{'title': ['This field is required.']}
+>>> ff1.data['title'] = 'afdafds'
+>>> ff1.is_valid()
+False
+>>> ff1.data
+{'content': 'c1', 'tag': ['1'], 'author': '1', 'title': 'afdafds'}
+- > 처음에 PostFormTest에서 데이터가 누락돼서 들어왔고, 그 누락된 데이터를 채우기 전에 is_valid()를 호출한 후, form.data['key'] = 'value'와 같이 데이터를 넣어도 validation(is_valid()) 통과 못한다.
+- > 그러나, is_valid()를 맨 처음 호출하기 전에 form.data['key'] = 'value'와 같이 누락된 값을 넣고 is_valid() 호출하면 True 반환.

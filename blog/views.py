@@ -1,9 +1,17 @@
 from django.shortcuts import render, redirect
 from django.views.generic import ListView, DetailView, CreateView, UpdateView
 from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
-from .models import Post, Category, Tag, Comment
+from .models import Post, Category, Tag, Comment, TestModel1
 from .forms import CommentForm
 
+# Test
+def testmodel1(request):
+    post = TestModel1.objects.get(pk=1)
+
+    context = {
+        'post': post,
+    }
+    return render(request, 'blog/test1.html', context)
 
 # def index(request):
 #     posts = Post.objects.all().order_by('-pk');
@@ -48,14 +56,15 @@ class PostCreate(LoginRequiredMixin, UserPassesTestMixin, CreateView):
     def form_valid(self, form):
         # 글을 실제로 작성할 때만 호출
         print('form_valid')
+        print('is Form valid? before: ', form.is_valid()) # True
         if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.is_staff):
             print('form', form)
-            # print('form.instance', form.instance)
-            print('type(form)', type(form))
-            print('type(form.instance)', type(form.instance))
-            # type(form) <class 'django.forms.widgets.PostForm'>
-            # type(form.instance) <class 'blog.models.Post'>
+            print('------------------------------')
+            print('form.instance', form.instance) # form.instance pk=None, title=adfas, created_at=None
+            print('type(form)', type(form)) # type(form) <class 'django.forms.widgets.PostForm'>
+            print('type(form.instance)', type(form.instance)) # type(form.instance) <class 'blog.models.Post'>
             form.instance.author = self.request.user
+            print('is Form valid? after: ', form.is_valid())
             return super(PostCreate, self).form_valid(form)
         else:
             return redirect('/blog/')

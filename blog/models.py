@@ -4,6 +4,12 @@ import os
 from markdownx.models import MarkdownxField
 from markdownx.utils import markdown
 
+# Test
+class TestModel1(models.Model):
+    # must defind a  'max_length' attribute
+    name = models.CharField(max_length=10)
+    hp = models.IntegerField()
+
 
 class Tag(models.Model):
     name = models.CharField(max_length=20, unique=True)
@@ -58,7 +64,8 @@ class Post(models.Model):
     tag = models.ManyToManyField(Tag)
 
     def __str__(self):
-        return f'pk={self.pk}, title={self.title}, created_at={self.created_at}, author={self.author}'
+        # return f'pk={self.pk}, title={self.title}, created_at={self.created_at}, author={self.author}'
+        return f'pk={self.pk}, title={self.title}, created_at={self.created_at}'
 
     def get_absolute_url(self):
         return f'/blog/{self.pk}/'
