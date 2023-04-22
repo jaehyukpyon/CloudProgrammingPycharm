@@ -143,3 +143,16 @@ False
 {'content': 'c1', 'tag': ['1'], 'author': '1', 'title': 'afdafds'}
 - > 처음에 PostFormTest에서 데이터가 누락돼서 들어왔고, 그 누락된 데이터를 채우기 전에 is_valid()를 호출한 후, form.data['key'] = 'value'와 같이 데이터를 넣어도 validation(is_valid()) 통과 못한다.
 - > 그러나, is_valid()를 맨 처음 호출하기 전에 form.data['key'] = 'value'와 같이 누락된 값을 넣고 is_valid() 호출하면 True 반환.
+
+
+
+form.is_valid()가 False여도, form.instance를 호출해서 실제 model 객체를 갖고온 다음, 그 갖고온 model 객체를 조작해서 DB에 저장 가능
+>>> t3 = TestModel2Form(data={})
+>>> in3 = t3.instance
+>>> in3.save()
+>>> in3.pk
+3
+>>> in3 == t3.instance
+True
+>>> t3.is_valid()
+False

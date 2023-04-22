@@ -10,6 +10,11 @@ class TestModel1(models.Model):
     name = models.CharField(max_length=10)
     hp = models.IntegerField()
 
+class TestModel2(models.Model):
+    # TestModel2.objects.create() -> 에러없이 db에 잘 들어감. db에 들어간 후, t2.hp 는 NoneType, db에는 null값 저장됨.
+    # 다만 admin페이지에서는 무조건 값을 지정해야 함. 안 하면 'This Field is Required 오류 발생'
+    hp = models.IntegerField(blank=False, null=True)
+
 
 class Tag(models.Model):
     name = models.CharField(max_length=20, unique=True)

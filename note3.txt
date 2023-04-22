@@ -1,0 +1,11 @@
+t = Tag.objects.get(name__contain='python')
+t.post_set -> <django.db.models.fields.related_descriptors.create_forward_many_to_many_manager.<locals>.ManyRelatedManager object at 0x000001BE01213400>
+t.post_set.all() -> 실제 Post가 담긴 QuerySet return
+
+>>> p = t.post_set.all()[0]
+>>> p.tag
+<django.db.models.fields.related_descriptors.create_forward_many_to_many_manager.<locals>.ManyRelatedManager object at 0x000001BE01A26D90>
+>>> p.tag.count()
+1
+>>> p.tag.all()
+<QuerySet [<Tag: python>]>
