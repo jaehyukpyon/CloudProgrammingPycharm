@@ -3,9 +3,11 @@
 {% block main_area %}
 
     {% if user.is_authenticated %}
-        {% if user.is_superuser or user.is_staff %}
-            <a href="/blog/create_post">글 쓰러 가기 (superuser or staff only)</a>
-        {%endif%}
+{#        {% if user.is_superuser or user.is_staff %}#}
+{#            <a href="/blog/create_post">글 쓰러 가기 (superuser or staff only)</a>#}
+{#        {%endif%}#}
+
+        <a href="/blog/create_post">글 쓰러 가기 (superuser or staff only)</a>
     {% endif %}
 
     <h1>Blog
