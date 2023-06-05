@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
+            integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
+            crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"
+            integrity="sha384-fbbOQedDUMZZ5KreZpsbe1LCZPVmfTnH7ois6mU1QK+m14rQ1l2bGBq41eYeM/fS"
+            crossorigin="anonymous"></script>
+
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
+          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
+
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+    <style>
+        #chartContainer {
+            width: 100%;
+            height: 500px;
+        }
+
+        #chartContainer canvas {
+            width: 100%;
+            height: 50%;
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="container">
+        <nav class="navbar navbar-expand-lg navbar-light bg-light">
+            <div class="container-fluid">
+                <a class="navbar-brand" onclick="window.location.reload()" style="cursor: pointer">현재가: </a>
+            </div>
+        </nav>
+    </div>
+
+    <div id="chartContainer">
+        <canvas id="myChart"></canvas>
+    </div>
+
+    <div id="informations">
+        <table class="table">
+            <tbody>
+            <tr>
+                <td><b>금일 고가</b></td>
+                <td id="high_price" style="color: red">Otto</td>
+                <td><b>금일 저가</b></td>
+                <td id="low_price" style="color: blue">Thornton</td>
+            </tr>
+            <tr>
+                <td><b>전일 종가</b></td>
+                <td id="prev_closing_price">Otto</td>
+                <td><b>전일 대비 값</b></td>
+                <td id="signed_change_price">Otto</td>
+            </tr>
+            <tr>
+                <td><b>52주 최고가</b></td>
+                <td id="highest_52_week_price">Otto</td>
+                <td><b>52주 최고가 날짜</b></td>
+                <td id="highest_52_week_date">Otto</td>
+            </tr>
+            <tr>
+                <td><b>52주 최저가</b></td>
+                <td id="lowest_52_week_price">Otto</td>
+                <td><b>52주 최저가 날짜</b></td>
+                <td id="lowest_52_week_date">Otto</td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+
+</body>
+
+<script>
+    let highPrice = document.getElementById("high_price");
+    let lowPrice = document.getElementById("low_price");
+    let prevClosingPrice = document.getElementById("prev_closing_price");
+    let signedChangePrice = document.getElementById("signed_change_price");
+    let highest52Price = document.getElementById("highest_52_week_price");
+    let highest52Date = document.getElementById("highest_52_week_date");
+    let lowest52Price = document.getElementById("lowest_52_week_price");
+    let lowest52Date = document.getElementById("lowest_52_week_date");
+
+    let socket;
+    let KRW_BTC_PRICE;
+
+    const generateUUID = function () {
+        let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+            const r = Math.random() * 16 | 0;
+            const v = c === 'x' ? r : (r & 0x3 | 0x8);
+            return v.toString(16);
+        });
+        return uuid;
+    };
+
+    const updateInformations = function (result) {
+        highPrice.innerText = result.high_price;
+        lowPrice.innerText = result.low_price;
+        prevClosingPrice.innerText = result.prev_closing_price;
+        signedChangePrice.innerText = result.signed_change_price;
+        highest52Price.innerText = result.highest_52_week_price;
+        highest52Date.innerText = result.highest_52_week_date;
+        lowest52Price.innerText = result.lowest_52_week_price;
+        lowest52Date.innerText = result.lowest_52_week_date;
+    }
+
+    const addCommasToNumber = function (number) {
+        // 숫자를 문자열로 변환
+        var str = number.toString();
+
+        // 소수점을 기준으로 숫자를 분리
+        var parts = str.split(".");
+        var wholeNumber = parts[0]; // 정수 부분
+        var decimal = parts[1]; // 소수 부분
+
+        // 세 자리마다 콤마를 추가
+        var regex = /\B(?=(\d{3})+(?!\d))/g;
+        wholeNumber = wholeNumber.replace(regex, ",");
+
+        // 소수 부분이 있는 경우 정수 부분과 합치기
+        if (decimal) {
+            return wholeNumber + "." + decimal;
+        } else {
+            return wholeNumber;
+        }
+    }
+
+    const filterRequest = function (filter) {
+        if (socket == undefined || socket == null) {
+            alert("웹소켓 연결이 존재하지 않습니다.");
+            return;
+        }
+        socket.send(filter);
+    };
+
+    const getRealTimePrice = function () {
+        if (socket != undefined || socket != null) {
+            socket.close();
+        }
+
+        socket = new WebSocket("wss://api.upbit.com/websocket/v1");
+        socket.binaryType = "arraybuffer";
+
+        socket.onopen = function (e) {
+
+            filterRequest(
+                "[{'ticket': '" + generateUUID() + "'}, {'type': 'ticker', 'codes': ['KRW-BTC']}]"
+            );
+        };
+
+        socket.onclose = function (e) {
+            socket = undefined;
+        }
+
+        socket.onmessage = function (e) {
+            let decoder = new TextDecoder("utf-8");
+            let dataArray = new Uint8Array(e.data);
+            let decodedString = decoder.decode(dataArray);
+            let result = JSON.parse(decodedString);
+
+            KRW_BTC_PRICE = result.trade_price;
+
+            updateInformations(result);
+        }
+    };
+
+    getRealTimePrice();
+
+    let hogaData = [];
+
+    // 호가 차트 초기화
+    const ctx = document.getElementById('myChart').getContext('2d');
+    const myChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [], // X축에 표시할 라벨
+            datasets: [{
+                label: '호가', // 차트의 라벨
+                data: [], // 호가 데이터
+                backgroundColor: 'rgb(247, 147, 26)', // 차트 영역의 배경색
+                borderColor: 'rgb(247, 147, 26)', // 차트의 선 색상
+                borderWidth: 1 // 차트의 선 굵기
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    display: true
+                },
+                y: {
+                    display: true
+                }
+            }
+        }
+    });
+
+    const getHourMinuteSecond = function () {
+        const now = new Date();
+        const hours = now.getHours(); // 현재 시간(0-23)
+        const minutes = now.getMinutes(); // 현재 분(0-59)
+        const seconds = now.getSeconds(); // 현재 초(0-59)
+
+        return hours.toString() + ":" + minutes.toString() + ":" + seconds.toString();
+    }
+
+    // 호가 데이터를 차트에 추가하고 업데이트
+    function updateHogaChart(newData) {
+        const maxDataPoints = 10;
+        if (hogaData.length == maxDataPoints) {
+            hogaData.shift(); // 배열에서 첫 번째 요소를 제거하고, 제거된 요소를 반환. 배열의 첫 번째 요소를 제거하여 최대 개수 유지
+        }
+        // 호가 데이터를 배열에 추가
+        hogaData.push(newData);
+
+        if (myChart.data.labels.length == maxDataPoints) {
+            myChart.data.labels.shift();
+        }
+        myChart.data.labels.push(getHourMinuteSecond());
+        myChart.data.datasets[0].data = hogaData; // 호가 데이터 설정
+        myChart.update(); // 차트 업데이트
+    }
+
+    // 호가 데이터 업데이트
+    function updateChartData() {
+        const currHoga = KRW_BTC_PRICE;
+        console.log(currHoga);
+        updateHogaChart(currHoga);
+    }
+
+    // 일정 시간마다 호가 데이터 업데이트 호출
+    setInterval(updateChartData, 2000); // 2초마다 업데이트
+</script>
+
+</html>
