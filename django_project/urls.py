@@ -25,6 +25,7 @@ urlpatterns = [
     path('', include('single_pages.urls')),
     path('markdownx/', include(markdownx)),
     path('accounts/', include('allauth.urls')),
+    path('crypto/', include('cryptocurrency.urls')),
 ]
 
 # http://localhost:8000/media/blog/images/2023/03/28/pasta.jpg
