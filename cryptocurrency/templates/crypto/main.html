@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Main</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
             integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
@@ -12,10 +12,8 @@
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"
             integrity="sha384-fbbOQedDUMZZ5KreZpsbe1LCZPVmfTnH7ois6mU1QK+m14rQ1l2bGBq41eYeM/fS"
             crossorigin="anonymous"></script>
-
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
           integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
-
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
     <style>
@@ -34,12 +32,9 @@
 <body>
 
 <div class="container">
-
     <div class="container">
         <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <div class="container-fluid">
-                <a class="navbar-brand" onclick="window.location.reload()" style="cursor: pointer">현재가: </a>
-            </div>
+            <h2>현재가(KRW): <span id="currPriceTag"></span></h2>
         </nav>
     </div>
 
@@ -52,30 +47,38 @@
             <tbody>
             <tr>
                 <td><b>금일 고가</b></td>
-                <td id="high_price" style="color: red">Otto</td>
+                <td id="high_price" style="color: red"></td>
                 <td><b>금일 저가</b></td>
-                <td id="low_price" style="color: blue">Thornton</td>
+                <td id="low_price" style="color: blue"></td>
             </tr>
             <tr>
                 <td><b>전일 종가</b></td>
-                <td id="prev_closing_price">Otto</td>
+                <td id="prev_closing_price"></td>
                 <td><b>전일 대비 값</b></td>
-                <td id="signed_change_price">Otto</td>
+                <td id="signed_change_price"></td>
             </tr>
             <tr>
                 <td><b>52주 최고가</b></td>
-                <td id="highest_52_week_price">Otto</td>
+                <td id="highest_52_week_price"></td>
                 <td><b>52주 최고가 날짜</b></td>
-                <td id="highest_52_week_date">Otto</td>
+                <td id="highest_52_week_date"></td>
             </tr>
             <tr>
                 <td><b>52주 최저가</b></td>
-                <td id="lowest_52_week_price">Otto</td>
+                <td id="lowest_52_week_price"></td>
                 <td><b>52주 최저가 날짜</b></td>
-                <td id="lowest_52_week_date">Otto</td>
+                <td id="lowest_52_week_date"></td>
             </tr>
             </tbody>
         </table>
+    </div>
+
+    <div id="ask_form">
+        <form>
+            <div>
+
+            </div>
+        </form>
     </div>
 </div>
 
@@ -91,6 +94,7 @@
     let highest52Date = document.getElementById("highest_52_week_date");
     let lowest52Price = document.getElementById("lowest_52_week_price");
     let lowest52Date = document.getElementById("lowest_52_week_date");
+    let currPriceTag = document.getElementById("currPriceTag");
 
     let socket;
     let KRW_BTC_PRICE;
@@ -153,7 +157,6 @@
         socket.binaryType = "arraybuffer";
 
         socket.onopen = function (e) {
-
             filterRequest(
                 "[{'ticket': '" + generateUUID() + "'}, {'type': 'ticker', 'codes': ['KRW-BTC']}]"
             );
@@ -186,7 +189,7 @@
         data: {
             labels: [], // X축에 표시할 라벨
             datasets: [{
-                label: '호가', // 차트의 라벨
+                label: 'KRW 단위 호가', // 차트의 라벨
                 data: [], // 호가 데이터
                 backgroundColor: 'rgb(247, 147, 26)', // 차트 영역의 배경색
                 borderColor: 'rgb(247, 147, 26)', // 차트의 선 색상
@@ -237,6 +240,7 @@
     function updateChartData() {
         const currHoga = KRW_BTC_PRICE;
         console.log(currHoga);
+        currPriceTag.innerText = addCommasToNumber(currHoga);
         updateHogaChart(currHoga);
     }
 
