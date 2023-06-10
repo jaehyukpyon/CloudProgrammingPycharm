@@ -20,7 +20,7 @@ def index(request):
         "crypto_name": crypto_name,
         "all_crypto_name_list": all_crypto_name_list,
     }
-    return render(request, 'crypto/main.html', context)
+    return render(request, 'crypto/crypto.html', context)
 
 def buy(request):
     pass

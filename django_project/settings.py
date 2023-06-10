@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'blog',
     'single_pages',
     'cryptocurrency',
+    'cryptowallet',
 ]
 
 MIDDLEWARE = [

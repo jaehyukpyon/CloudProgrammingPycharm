@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Main</title>
+    <title>Trade Cryptocurrency</title>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
             integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
@@ -101,25 +101,55 @@
             </thead>
             <tbody>
             <tr>
+                <th scope="row">기준가격(KRW)</th>
+                <td id="target_price"></td>
+            </tr>
+            <tr>
                 <th scope="row">수량</th>
-                <td><input type="number"></td>
+                <td><input type="number" oninput="handleInput(event)" id="quantity"></td>
+            </tr>
+            <tr>
+                <th scope="row">주문총액(KRW)</th>
+                <td id="total_price"></td>
             </tr>
             <tr>
                 <td colspan="2">
-                    <button type="button" class="btn btn-outline-danger">매수</button>
+                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                            data-bs-target="#exampleModal">매수
+                    </button>
                 </td>
             </tr>
             <tr>
                 <td colspan="2">
-                    <button type="button" class="btn btn-outline-info">매도</button>
+                    <button type="button" class="btn btn-outline-info" data-bs-toggle="modal"
+                            data-bs-target="#exampleModal">매도
+                    </button>
                 </td>
             </tr>
             </tbody>
         </table>
     </div>
+
+    <!-- Modal -->
+    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    ...
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-primary">Save changes</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 </div>
-
-
 </body>
 
 <script>
@@ -136,11 +166,22 @@
     let lowest52Date = document.getElementById("lowest_52_week_date");
     let currPriceTag = document.getElementById("currPriceTag");
     let cryptoName = document.getElementById("crypto_name");
+    let targetPrice = document.getElementById("target_price");
+    let totalPrice = document.getElementById("total_price");
+    let quantity = document.getElementById("quantity");
 
     cryptoName.innerHTML = crypto_name;
 
     let socket;
-    let KRW_BTC_PRICE;
+    let KRW_PRICE;
+
+    const parseNumberWithDecimal = function(str) {
+        let numericValue = parseFloat(str);
+        if (isNaN(numericValue)) {
+            return "Error";
+        }
+        return numericValue;
+    }
 
     const generateUUID = function () {
         let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
@@ -203,6 +244,7 @@
             );
         };
         socket.onclose = function (e) {
+            console.log("소켓을 종료했습니다.")
             socket = undefined;
         }
         socket.onmessage = function (e) {
@@ -210,7 +252,8 @@
             let dataArray = new Uint8Array(e.data);
             let decodedString = decoder.decode(dataArray);
             let result = JSON.parse(decodedString);
-            KRW_BTC_PRICE = result.trade_price;
+            KRW_PRICE = result.trade_price;
+            targetPrice.innerHTML = result.trade_price;
             updateInformations(result);
         }
     };
@@ -230,7 +273,7 @@
                 data: [], // 호가 데이터
                 backgroundColor: 'rgb(247, 147, 26)', // 차트 영역의 배경색
                 borderColor: 'rgb(247, 147, 26)', // 차트의 선 색상
-                borderWidth: 1 // 차트의 선 굵기
+                borderWidth: 2 // 차트의 선 굵기
             }]
         },
         options: {
@@ -274,24 +317,49 @@
     }
 
     // 호가 데이터 업데이트
-    function updateChartData() {
-        const currHoga = KRW_BTC_PRICE;
+    function updateDataEvery2Seconds() {
+        console.log("updateDataEvery2Seconds");
+
+        const currHoga = KRW_PRICE;
         console.log(currHoga);
         currPriceTag.innerText = addCommasToNumber(currHoga);
         updateHogaChart(currHoga);
+
+        // 만약 사용자가 입력한 수량이 0보다 클 경우 주문 총액을 변경해준다.
+        let checkQuantity = parseNumberWithDecimal(quantity.value);
+        console.log("checkQuantity: " + checkQuantity);
+        if (!(checkQuantity === "Error") && checkQuantity > 0) {
+            console.log("사용자가 입력한 수량: " + checkQuantity);
+            totalPrice.innerHTML = checkQuantity * currHoga;
+        }
     }
 
     // 일정 시간마다 호가 데이터 업데이트 호출
-    setInterval(updateChartData, 2000); // 2초마다 업데이트
+    setInterval(updateDataEvery2Seconds, 2000); // 2초마다 업데이트
 
 
     // select 태그의 요소 중 하나를 클릭했을 때 서버로 GET 요청 처리하기.
     const cryptoNameSelect = document.getElementById('crypto_name_select');
     cryptoNameSelect.addEventListener('change', function () {
+        socket.close();
         const selectedOption = cryptoNameSelect.value;
         const url = '/crypto/?crypto_name=' + selectedOption;
         window.location.href = url;
     });
+
+    // 사용자가 주문을 하기 위해 input태그에 입력할 경우 이벤트 처리
+    const handleInput = function(event) {
+        let inputStr = event.target.value;
+        console.log("사용자 입력: " + inputStr);
+
+        let convertedToNum = parseNumberWithDecimal(inputStr);
+        if (convertedToNum === "Error") {
+            alert("수량은 숫자만 입력할 수 있습니다.");
+            event.target.value = "";
+        } else {
+            totalPrice.innerHTML = convertedToNum * KRW_PRICE;
+        }
+    }
 </script>
 
 </html>
