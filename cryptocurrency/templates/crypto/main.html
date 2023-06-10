@@ -26,6 +26,18 @@
             width: 100%;
             height: 50%;
         }
+
+        select {
+            display: inline-block !important;
+        }
+
+        #buy_sell_tbl td, #buy_sell_tbl th {
+            text-align: center;
+        }
+
+        #buy_sell_tbl button {
+            width: 100%;
+        }
     </style>
 </head>
 
@@ -33,15 +45,22 @@
 
 <div class="container">
     <div class="container">
-        <nav class="navbar navbar-expand-lg navbar-light bg-light">
-            <h2>현재가(KRW): <span id="currPriceTag"></span></h2>
-        </nav>
+        <h3 id="crypto_name"></h3>
+        <h1 style="display: inline-block">현재가 <span style="font-size: 25px">(KRW):</span>
+            <span id="currPriceTag"></span></h1>
+
+        <select id="crypto_name_select" class="form-select" aria-label="Default select example">
+            <option selected>다른 암호화폐 가격을 확인하세요.</option>
+            {% for item in all_crypto_name_list %}
+                <option value="{{ item }}">{{ item }}</option>
+            {% endfor %}
+        </select>
     </div>
 
     <div id="chartContainer">
         <canvas id="myChart"></canvas>
     </div>
-
+    <br>
     <div id="informations">
         <table class="table">
             <tbody>
@@ -55,7 +74,7 @@
                 <td><b>전일 종가</b></td>
                 <td id="prev_closing_price"></td>
                 <td><b>전일 대비 값</b></td>
-                <td id="signed_change_price"></td>
+                <td><b id="signed_change_price"></b></td>
             </tr>
             <tr>
                 <td><b>52주 최고가</b></td>
@@ -73,12 +92,30 @@
         </table>
     </div>
 
-    <div id="ask_form">
-        <form>
-            <div>
-
-            </div>
-        </form>
+    <div class="buy_sell_container">
+        <table class="table table-bordered" id="buy_sell_tbl">
+            <thead>
+            <tr>
+                <th colspan="2">시장가 매도&#183;매수</th>
+            </tr>
+            </thead>
+            <tbody>
+            <tr>
+                <th scope="row">수량</th>
+                <td><input type="number"></td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <button type="button" class="btn btn-outline-danger">매수</button>
+                </td>
+            </tr>
+            <tr>
+                <td colspan="2">
+                    <button type="button" class="btn btn-outline-info">매도</button>
+                </td>
+            </tr>
+            </tbody>
+        </table>
     </div>
 </div>
 
@@ -86,6 +123,9 @@
 </body>
 
 <script>
+    let crypto_name = "{{ crypto_name }}"
+    console.log(crypto_name)
+
     let highPrice = document.getElementById("high_price");
     let lowPrice = document.getElementById("low_price");
     let prevClosingPrice = document.getElementById("prev_closing_price");
@@ -95,6 +135,9 @@
     let lowest52Price = document.getElementById("lowest_52_week_price");
     let lowest52Date = document.getElementById("lowest_52_week_date");
     let currPriceTag = document.getElementById("currPriceTag");
+    let cryptoName = document.getElementById("crypto_name");
+
+    cryptoName.innerHTML = crypto_name;
 
     let socket;
     let KRW_BTC_PRICE;
@@ -121,15 +164,15 @@
 
     const addCommasToNumber = function (number) {
         // 숫자를 문자열로 변환
-        var str = number.toString();
+        let str = number.toString();
 
         // 소수점을 기준으로 숫자를 분리
-        var parts = str.split(".");
-        var wholeNumber = parts[0]; // 정수 부분
-        var decimal = parts[1]; // 소수 부분
+        let parts = str.split(".");
+        let wholeNumber = parts[0]; // 정수 부분
+        let decimal = parts[1]; // 소수 부분
 
         // 세 자리마다 콤마를 추가
-        var regex = /\B(?=(\d{3})+(?!\d))/g;
+        let regex = /\B(?=(\d{3})+(?!\d))/g;
         wholeNumber = wholeNumber.replace(regex, ",");
 
         // 소수 부분이 있는 경우 정수 부분과 합치기
@@ -152,28 +195,22 @@
         if (socket != undefined || socket != null) {
             socket.close();
         }
-
         socket = new WebSocket("wss://api.upbit.com/websocket/v1");
         socket.binaryType = "arraybuffer";
-
         socket.onopen = function (e) {
             filterRequest(
-                "[{'ticket': '" + generateUUID() + "'}, {'type': 'ticker', 'codes': ['KRW-BTC']}]"
+                "[{'ticket': '" + generateUUID() + "'}, {'type': 'ticker', 'codes': ['" + crypto_name + "']}]"
             );
         };
-
         socket.onclose = function (e) {
             socket = undefined;
         }
-
         socket.onmessage = function (e) {
             let decoder = new TextDecoder("utf-8");
             let dataArray = new Uint8Array(e.data);
             let decodedString = decoder.decode(dataArray);
             let result = JSON.parse(decodedString);
-
             KRW_BTC_PRICE = result.trade_price;
-
             updateInformations(result);
         }
     };
@@ -246,6 +283,15 @@
 
     // 일정 시간마다 호가 데이터 업데이트 호출
     setInterval(updateChartData, 2000); // 2초마다 업데이트
+
+
+    // select 태그의 요소 중 하나를 클릭했을 때 서버로 GET 요청 처리하기.
+    const cryptoNameSelect = document.getElementById('crypto_name_select');
+    cryptoNameSelect.addEventListener('change', function () {
+        const selectedOption = cryptoNameSelect.value;
+        const url = '/crypto/?crypto_name=' + selectedOption;
+        window.location.href = url;
+    });
 </script>
 
 </html>
