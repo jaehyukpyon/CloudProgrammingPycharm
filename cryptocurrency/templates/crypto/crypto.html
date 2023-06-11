@@ -112,20 +112,35 @@
                 <th scope="row">주문총액(KRW)</th>
                 <td id="total_price"></td>
             </tr>
-            <tr>
+
+            {% if user.is_authenticated %}
+                <tr>
+                    <th scope="row">현재 보유 수량</th>
+                    <td id="crypto_balance">{{ crypto_balance }}</td>
+                </tr>
+                <tr>
+                    <th scope="row">입출금 계좌 잔액(KRW)</th>
+                    <td id="krw_balance">{{ krw_balance }}</td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                                data-bs-target="#exampleModal" id="buy_button">매수
+                        </button>
+                    </td>
+                </tr>
+                <tr>
+                    <td colspan="2">
+                        <button type="button" class="btn btn-outline-info" data-bs-toggle="modal"
+                                data-bs-target="#exampleModal" id="sell_button">매도
+                        </button>
+                    </td>
+                </tr>
+            {% else %}
                 <td colspan="2">
-                    <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
-                            data-bs-target="#exampleModal">매수
-                    </button>
+                    <b style="color: red">로그인 후 거래가 가능합니다.</b>
                 </td>
-            </tr>
-            <tr>
-                <td colspan="2">
-                    <button type="button" class="btn btn-outline-info" data-bs-toggle="modal"
-                            data-bs-target="#exampleModal">매도
-                    </button>
-                </td>
-            </tr>
+            {% endif %}
             </tbody>
         </table>
     </div>
@@ -135,15 +150,29 @@
         <div class="modal-dialog modal-dialog-centered">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">Modal title</h1>
+                    <h1 class="modal-title fs-5" id="exampleModalLabel">
+                        <span id="modal_title"></span>주문 확인서</h1>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
-                    ...
+                    <table class="table table-bordered">
+                        <tr>
+                            <th scope="row">기준가격(KRW)</th>
+                            <td id="modal_krw">0.000</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">주문수량</th>
+                            <td id="modal_quantity">0.000</td>
+                        </tr>
+                        <tr>
+                            <th scope="row">주문총액(KRW)</th>
+                            <td id="modal_total"></td>
+                        </tr>
+                    </table>
                 </div>
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" class="btn btn-primary">Save changes</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                    <button type="button" class="btn btn-primary" id="modal_order_confirm_btn"><span id="modal_order_confirm_type"></span>주문하기</button>
                 </div>
             </div>
         </div>
@@ -172,10 +201,23 @@
 
     cryptoName.innerHTML = crypto_name;
 
+    // 매도 매수 버튼
+    let buy_button = document.getElementById("buy_button");
+    let sell_button = document.getElementById("sell_button");
+
+    // 모달 관련
+    let modal_title = document.getElementById("modal_title");
+    let modal_krw = document.getElementById("modal_krw");
+    let modal_quantity = document.getElementById("modal_quantity");
+    let modal_total = document.getElementById("modal_total");
+    let modal_order_confirm_type = document.getElementById("modal_order_confirm_type");
+    let modal_order_confirm_btn = document.getElementById("modal_order_confirm_btn");
+
     let socket;
     let KRW_PRICE;
+    let freezePrice;
 
-    const parseNumberWithDecimal = function(str) {
+    const parseNumberWithDecimal = function (str) {
         let numericValue = parseFloat(str);
         if (isNaN(numericValue)) {
             return "Error";
@@ -319,7 +361,6 @@
     // 호가 데이터 업데이트
     function updateDataEvery2Seconds() {
         console.log("updateDataEvery2Seconds");
-
         const currHoga = KRW_PRICE;
         console.log(currHoga);
         currPriceTag.innerText = addCommasToNumber(currHoga);
@@ -348,7 +389,7 @@
     });
 
     // 사용자가 주문을 하기 위해 input태그에 입력할 경우 이벤트 처리
-    const handleInput = function(event) {
+    const handleInput = function (event) {
         let inputStr = event.target.value;
         console.log("사용자 입력: " + inputStr);
 
@@ -356,6 +397,7 @@
         if (convertedToNum === "Error") {
             alert("수량은 숫자만 입력할 수 있습니다.");
             event.target.value = "";
+            totalPrice.innerHTML = 0;
         } else {
             totalPrice.innerHTML = convertedToNum * KRW_PRICE;
         }
