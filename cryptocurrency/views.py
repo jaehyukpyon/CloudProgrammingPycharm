@@ -2,6 +2,8 @@ from django.shortcuts import render
 import pyupbit
 from cryptowallet.models import KRWBalance, CryptoBalance
 from django.db.models import Q
+import json
+from django.http import HttpResponse
 
 def get_all_krw_strings():
   all_list = pyupbit.get_tickers(fiat = "KRW")
@@ -51,4 +53,42 @@ def index(request):
     return render(request, 'crypto/crypto.html', context)
 
 def buy(request):
-    pass
+    print("is user authenticated? " + str(request.user.is_authenticated))
+    if not request.user.is_authenticated:
+        response_data = {
+            "message": "User is not authenticated. Please login first.",
+        }
+        json_data = json.dumps(response_data)
+        response = HttpResponse(json_data, content_type="application/json")
+        response.status_code = 403
+        return response
+
+    if not request.method == "POST":
+        response_data = {
+            "message": "GET method is not allowed. Please use POST instead.",
+        }
+        json_data = json.dumps(response_data)
+        response = HttpResponse(json_data, content_type="application/json")
+        response.status_code = 405
+        return response
+
+    decoded_data = request.body.decode("utf-8")
+    request_data = json.loads(decoded_data)
+    print(request_data)
+
+    krw_balance = get_krw_balance(request.user)
+    total_price = request_data.get("totalPrice")
+    print("krw_balance: " + str(krw_balance))
+    print("total_price: " + str(total_price))
+    if (krw_balance >= total_price):
+        print("매수할 수 있음.")
+    else:
+        pass
+
+    json_data = {
+        "test": "Good!!",
+    }
+    response_data = json.dumps(json_data)
+
+    print("---------- end of cryptocurrenty/views/buy ----------")
+    return HttpResponse(response_data, content_type='application/json')

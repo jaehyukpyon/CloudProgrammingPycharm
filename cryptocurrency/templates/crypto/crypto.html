@@ -43,6 +43,8 @@
 
 <body>
 
+<h1>{{ request.path }}</h1>
+
 <div class="container">
     <div class="container">
         <h3 id="crypto_name"></h3>
@@ -158,11 +160,11 @@
                     <table class="table table-bordered">
                         <tr>
                             <th scope="row">기준가격(KRW)</th>
-                            <td id="modal_krw">0.000</td>
+                            <td id="modal_krw"></td>
                         </tr>
                         <tr>
                             <th scope="row">주문수량</th>
-                            <td id="modal_quantity">0.000</td>
+                            <td id="modal_quantity"></td>
                         </tr>
                         <tr>
                             <th scope="row">주문총액(KRW)</th>
@@ -172,7 +174,9 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                    <button type="button" class="btn btn-primary" id="modal_order_confirm_btn"><span id="modal_order_confirm_type"></span>주문하기</button>
+                    <button type="button" class="btn btn-primary" id="modal_order_confirm_button"><span
+                            id="modal_order_confirm_type"></span>주문하기
+                    </button>
                 </div>
             </div>
         </div>
@@ -211,11 +215,19 @@
     let modal_quantity = document.getElementById("modal_quantity");
     let modal_total = document.getElementById("modal_total");
     let modal_order_confirm_type = document.getElementById("modal_order_confirm_type");
-    let modal_order_confirm_btn = document.getElementById("modal_order_confirm_btn");
+    let modal_order_confirm_button = document.getElementById("modal_order_confirm_button");
 
     let socket;
     let KRW_PRICE;
-    let freezePrice;
+    let currHoga;
+
+    const multiplyStrings = function (str1, str2) {
+        const num1 = parseFloat(str1);
+        const num2 = parseFloat(str2);
+        let result = num1 * num2;
+        result = Math.round(result * 1000) / 1000;
+        return result.toFixed(3);
+    }
 
     const parseNumberWithDecimal = function (str) {
         let numericValue = parseFloat(str);
@@ -361,7 +373,7 @@
     // 호가 데이터 업데이트
     function updateDataEvery2Seconds() {
         console.log("updateDataEvery2Seconds");
-        const currHoga = KRW_PRICE;
+        currHoga = KRW_PRICE;
         console.log(currHoga);
         currPriceTag.innerText = addCommasToNumber(currHoga);
         updateHogaChart(currHoga);
@@ -371,7 +383,7 @@
         console.log("checkQuantity: " + checkQuantity);
         if (!(checkQuantity === "Error") && checkQuantity > 0) {
             console.log("사용자가 입력한 수량: " + checkQuantity);
-            totalPrice.innerHTML = checkQuantity * currHoga;
+            totalPrice.innerHTML = multiplyStrings(checkQuantity, currHoga);
         }
     }
 
@@ -399,9 +411,51 @@
             event.target.value = "";
             totalPrice.innerHTML = 0;
         } else {
-            totalPrice.innerHTML = convertedToNum * KRW_PRICE;
+            totalPrice.innerHTML = multiplyStrings(convertedToNum, KRW_PRICE);
         }
     }
+
+    // 사용자가 매수 버튼을 눌렀을 경우 이벤트 처리
+    buy_button.addEventListener("click", function () {
+        const freezePrice = currHoga;
+        modal_title.innerHTML = "매수";
+        modal_krw.innerHTML = freezePrice;
+        modal_quantity.innerHTML = quantity.value;
+        modal_total.innerHTML = multiplyStrings(modal_krw.innerText, modal_quantity.innerText);
+        modal_order_confirm_type.innerHTML = "매수"
+    });
+
+    const sendBuyRequest = function () {
+        const url = "{{ request.path }}" + "buy/";
+        return fetch(url, {
+            method: "POST",
+            headers: {
+                "X-CSRFToken": "{{ csrf_token }}",
+                "Content-type": "application/json",
+            },
+            body: JSON.stringify({
+                "cryptoName": crypto_name,
+                "targetPrice": modal_krw.innerText,
+                "quantity": modal_quantity.innerText,
+                "totalPrice": modal_total.innerText,
+            }),
+        }).then(function (response) {
+            return response.json();
+        }).catch(function () {
+            console.log("암호화폐 매수 중 error 발생...")
+        });
+    }
+
+    // 사용자가 최종 confirm 버튼을 눌렀을 경우 이벤트 처리
+    modal_order_confirm_button.addEventListener("click", async function () {
+        if (modal_order_confirm_type.innerText === "매수") {
+            console.log("사용자가 매수 confirm 버튼 클릭함.");
+            let response = await sendBuyRequest();
+            console.log(response);
+        } else if (modal_order_confirm_type.innerText === "매도") {
+            console.log("사용자가 매도 confirm 버튼 클릭함.");
+        }
+    });
 </script>
 
 </html>
