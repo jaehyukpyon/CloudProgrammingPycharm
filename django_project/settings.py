@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 
 from pathlib import Path
 import os
+import dj_database_url
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -27,7 +28,6 @@ SECRET_KEY = 'django-insecure-l#72pcj@^%ni8735wt9f7h9b3u*n&9c3wr^*8j_rfi6#(it^=g
 DEBUG = True
 
 ALLOWED_HOSTS = ['*']
-
 
 # Application definition
 
@@ -86,17 +86,28 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'django_project.wsgi.application'
 
-
 # Database
 # https://docs.djangoproject.com/en/4.2/ref/settings/#databases
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
+        'ENGINE': 'django.db.backends.sqlite3', # driver 얘기하는 것 test-db-jh
         'NAME': BASE_DIR / 'db.sqlite3',
     }
 }
 
+# DATABASES['default'] = dj_database_url.config(conn_max_age=600)
+
+# DATABASES = {
+#     'default': {
+#         'ENGINE': 'mysql.connector.django',
+#         'NAME': 'op_2c4ebf01_1c98_40a3_9bee_b012480085cd',
+#         'USER': '4d8166f37576e216',
+#         'PASSWORD': '45946aa784cc6340',
+#         'HOST': '115.68.198.187',
+#         'PORT': '13307',
+#     }
+# }
 
 # Password validation
 # https://docs.djangoproject.com/en/4.2/ref/settings/#auth-password-validators
