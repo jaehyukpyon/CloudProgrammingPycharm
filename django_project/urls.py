@@ -26,6 +26,7 @@ urlpatterns = [
     path('markdownx/', include(markdownx)),
     path('accounts/', include('allauth.urls')),
     path('crypto/', include('cryptocurrency.urls')),
+    path('mywallet/', include('cryptowallet.urls')),
 ]
 
 # http://localhost:8000/media/blog/images/2023/03/28/pasta.jpg

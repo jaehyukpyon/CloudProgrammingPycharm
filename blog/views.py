@@ -4,6 +4,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin, UserPassesTestMixin
 from .models import Post, Category, Tag, Comment, TestModel1
 from .forms import CommentForm
 
+
 # Test
 def testmodel1(request):
     post = TestModel1.objects.get(pk=1)
@@ -12,6 +13,7 @@ def testmodel1(request):
         'post': post,
     }
     return render(request, 'blog/test1.html', context)
+
 
 # def index(request):
 #     posts = Post.objects.all().order_by('-pk');
@@ -51,22 +53,21 @@ class PostCreate(LoginRequiredMixin, UserPassesTestMixin, CreateView):
         # UserPassesTestMixin의 함수를 overrides
         # 글 작성 페이지를 보여줄 때, 글을 실제로 작성(post)할 때 둘다
         print('test_func')
-        #return self.request.user.is_staff or self.request.user.is_superuser
+        # return self.request.user.is_staff or self.request.user.is_superuser
         return True
 
     def form_valid(self, form):
         # 글을 실제로 작성할 때만 호출
         print('form_valid')
-        print('is Form valid? before: ', form.is_valid()) # True
+        print('is Form valid? before: ', form.is_valid())  # True
 
-
-        #if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.is_staff):
+        # if self.request.user.is_authenticated and (self.request.user.is_superuser or self.request.user.is_staff):
         if self.request.user.is_authenticated:
             print('form', form)
             print('------------------------------')
-            print('form.instance', form.instance) # form.instance pk=None, title=adfas, created_at=None
-            print('type(form)', type(form)) # type(form) <class 'django.forms.widgets.PostForm'>
-            print('type(form.instance)', type(form.instance)) # type(form.instance) <class 'blog.models.Post'>
+            print('form.instance', form.instance)  # form.instance pk=None, title=adfas, created_at=None
+            print('type(form)', type(form))  # type(form) <class 'django.forms.widgets.PostForm'>
+            print('type(form.instance)', type(form.instance))  # type(form.instance) <class 'blog.models.Post'>
             form.instance.author = self.request.user
             print('is Form valid? after: ', form.is_valid())
             return super(PostCreate, self).form_valid(form)

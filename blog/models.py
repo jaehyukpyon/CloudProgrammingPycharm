@@ -4,11 +4,13 @@ import os
 from markdownx.models import MarkdownxField
 from markdownx.utils import markdown
 
+
 # Test
 class TestModel1(models.Model):
     # must defind a  'max_length' attribute
     name = models.CharField(max_length=10)
     hp = models.IntegerField()
+
 
 class TestModel2(models.Model):
     # TestModel2.objects.create() -> 에러없이 db에 잘 들어감. db에 들어간 후, t2.hp 는 NoneType, db에는 null값 저장됨.
@@ -56,7 +58,7 @@ class Post(models.Model):
 
     # 생성일자는 auto_now_add를 사용
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     # 수정일자는 auto_now를 사용
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -95,4 +97,3 @@ class Comment(models.Model):
 
     def get_absolute_url(self):
         return f'{self.post.get_absolute_url()}#comment-{self.pk}'
-

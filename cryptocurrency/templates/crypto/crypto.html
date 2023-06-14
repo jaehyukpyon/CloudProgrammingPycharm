@@ -221,6 +221,25 @@
     let KRW_PRICE;
     let currHoga;
 
+    const truncateDecimal = function (number) {
+        // 소수점 네 자리 이후 절삭
+        if (isNaN(number)) {
+            return "Error";
+        }
+        var truncatedNumber = Math.floor(number * 1000) / 1000;
+        return truncatedNumber;
+    }
+
+    const checkDecimalLength = function (numberString) {
+        // 소수점을 기준으로 문자열 분리
+        let parts = numberString.split(".");
+        // 소수점 자리수 확인
+        if (parts.length === 2 && parts[1].length >= 4) {
+            return false;
+        }
+        return true;
+    }
+
     const multiplyStrings = function (str1, str2) {
         const num1 = parseFloat(str1);
         const num2 = parseFloat(str2);
@@ -405,13 +424,21 @@
         let inputStr = event.target.value;
         console.log("사용자 입력: " + inputStr);
 
-        let convertedToNum = parseNumberWithDecimal(inputStr);
-        if (convertedToNum === "Error") {
+        if (isNaN(inputStr)) {
             alert("수량은 숫자만 입력할 수 있습니다.");
             event.target.value = "";
             totalPrice.innerHTML = 0;
+        } else if (checkDecimalLength(inputStr) === false) {
+            alert("수량은 소수점 세 자리 이하만 입력할 수 있습니다.");
+            event.target.value = "";
+            totalPrice.innerHTML = 0;
         } else {
-            totalPrice.innerHTML = multiplyStrings(convertedToNum, KRW_PRICE);
+            let result = multiplyStrings(inputStr, currHoga)
+            if (isNaN(result)) {
+                totalPrice.innerHTML = 0;
+            } else {
+                totalPrice.innerHTML = result;
+            }
         }
     }
 
