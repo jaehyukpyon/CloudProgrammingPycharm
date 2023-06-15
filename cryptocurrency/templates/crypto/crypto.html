@@ -1,21 +1,5 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Trade Cryptocurrency</title>
-
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
-            integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
-            crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"
-            integrity="sha384-fbbOQedDUMZZ5KreZpsbe1LCZPVmfTnH7ois6mU1QK+m14rQ1l2bGBq41eYeM/fS"
-            crossorigin="anonymous"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-
+{% extends 'crypto/base.html' %}
+{% block style_tags %}
     <style>
         #chartContainer {
             width: 100%;
@@ -39,450 +23,483 @@
             width: 100%;
         }
     </style>
-</head>
+{% endblock %}
 
-<body>
+{% block content %}
+{#    <h1>{{ request.path }}</h1>#}
 
-<h1>{{ request.path }}</h1>
-
-<div class="container">
     <div class="container">
-        <h3 id="crypto_name"></h3>
-        <h1 style="display: inline-block">현재가 <span style="font-size: 25px">(KRW):</span>
-            <span id="currPriceTag"></span></h1>
+        <div class="container">
+            <h3 id="crypto_name"></h3>
+            <h1 style="display: inline-block">현재가 <span style="font-size: 25px">(KRW):</span>
+                <span id="currPriceTag"></span></h1>
 
-        <select id="crypto_name_select" class="form-select" aria-label="Default select example">
-            <option selected>다른 암호화폐 가격을 확인하세요.</option>
-            {% for item in all_crypto_name_list %}
-                <option value="{{ item }}">{{ item }}</option>
-            {% endfor %}
-        </select>
-    </div>
+            <select id="crypto_name_select" class="form-select" aria-label="Default select example">
+                <option selected>다른 암호화폐 가격을 확인하세요.</option>
+                {% for item in all_crypto_name_list %}
+                    <option value="{{ item }}">{{ item }}</option>
+                {% endfor %}
+            </select>
+        </div>
 
-    <div id="chartContainer">
-        <canvas id="myChart"></canvas>
-    </div>
-    <br>
-    <div id="informations">
-        <table class="table">
-            <tbody>
-            <tr>
-                <td><b>금일 고가</b></td>
-                <td id="high_price" style="color: red"></td>
-                <td><b>금일 저가</b></td>
-                <td id="low_price" style="color: blue"></td>
-            </tr>
-            <tr>
-                <td><b>전일 종가</b></td>
-                <td id="prev_closing_price"></td>
-                <td><b>전일 대비 값</b></td>
-                <td><b id="signed_change_price"></b></td>
-            </tr>
-            <tr>
-                <td><b>52주 최고가</b></td>
-                <td id="highest_52_week_price"></td>
-                <td><b>52주 최고가 날짜</b></td>
-                <td id="highest_52_week_date"></td>
-            </tr>
-            <tr>
-                <td><b>52주 최저가</b></td>
-                <td id="lowest_52_week_price"></td>
-                <td><b>52주 최저가 날짜</b></td>
-                <td id="lowest_52_week_date"></td>
-            </tr>
-            </tbody>
-        </table>
-    </div>
-
-    <div class="buy_sell_container">
-        <table class="table table-bordered" id="buy_sell_tbl">
-            <thead>
-            <tr>
-                <th colspan="2">시장가 매도&#183;매수</th>
-            </tr>
-            </thead>
-            <tbody>
-            <tr>
-                <th scope="row">기준가격(KRW)</th>
-                <td id="target_price"></td>
-            </tr>
-            <tr>
-                <th scope="row">수량</th>
-                <td><input type="number" oninput="handleInput(event)" id="quantity"></td>
-            </tr>
-            <tr>
-                <th scope="row">주문총액(KRW)</th>
-                <td id="total_price"></td>
-            </tr>
-
-            {% if user.is_authenticated %}
+        <div id="chartContainer">
+            <canvas id="myChart"></canvas>
+        </div>
+        <br>
+        <div id="informations">
+            <table class="table">
+                <tbody>
                 <tr>
-                    <th scope="row">현재 보유 수량</th>
-                    <td id="crypto_balance">{{ crypto_balance }}</td>
+                    <td><b>금일 고가</b></td>
+                    <td id="high_price" style="color: red"></td>
+                    <td><b>금일 저가</b></td>
+                    <td id="low_price" style="color: blue"></td>
                 </tr>
                 <tr>
-                    <th scope="row">입출금 계좌 잔액(KRW)</th>
-                    <td id="krw_balance">{{ krw_balance }}</td>
+                    <td><b>전일 종가</b></td>
+                    <td id="prev_closing_price"></td>
+                    <td><b>전일 대비 값</b></td>
+                    <td><b id="signed_change_price"></b></td>
                 </tr>
                 <tr>
+                    <td><b>52주 최고가</b></td>
+                    <td id="highest_52_week_price"></td>
+                    <td><b>52주 최고가 날짜</b></td>
+                    <td id="highest_52_week_date"></td>
+                </tr>
+                <tr>
+                    <td><b>52주 최저가</b></td>
+                    <td id="lowest_52_week_price"></td>
+                    <td><b>52주 최저가 날짜</b></td>
+                    <td id="lowest_52_week_date"></td>
+                </tr>
+                </tbody>
+            </table>
+        </div>
+
+        <div class="buy_sell_container">
+            <table class="table table-bordered" id="buy_sell_tbl">
+                <thead>
+                <tr>
+                    <th colspan="2">시장가 매도&#183;매수</th>
+                </tr>
+                </thead>
+                <tbody>
+                <tr>
+                    <th scope="row">기준가격(KRW)</th>
+                    <td id="target_price"></td>
+                </tr>
+                <tr>
+                    <th scope="row">수량</th>
+                    <td><input type="number" oninput="handleInput(event)" id="quantity"></td>
+                </tr>
+                <tr>
+                    <th scope="row">주문총액(KRW)</th>
+                    <td id="total_price"></td>
+                </tr>
+
+                {% if user.is_authenticated %}
+                    <tr>
+                        <th scope="row">현재 보유 수량</th>
+                        <td id="crypto_balance">{{ crypto_balance }}</td>
+                    </tr>
+                    <tr>
+                        <th scope="row">입출금 계좌 잔액(KRW)</th>
+                        <td id="krw_balance">{{ krw_balance }}</td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
+                                    data-bs-target="#exampleModal" id="buy_button">매수
+                            </button>
+                        </td>
+                    </tr>
+                    <tr>
+                        <td colspan="2">
+                            <button type="button" class="btn btn-outline-info" data-bs-toggle="modal"
+                                    data-bs-target="#exampleModal" id="sell_button">매도
+                            </button>
+                        </td>
+                    </tr>
+                {% else %}
                     <td colspan="2">
-                        <button type="button" class="btn btn-outline-danger" data-bs-toggle="modal"
-                                data-bs-target="#exampleModal" id="buy_button">매수
-                        </button>
+                        <b style="color: red">로그인 후 거래가 가능합니다.</b>
                     </td>
-                </tr>
-                <tr>
-                    <td colspan="2">
-                        <button type="button" class="btn btn-outline-info" data-bs-toggle="modal"
-                                data-bs-target="#exampleModal" id="sell_button">매도
-                        </button>
-                    </td>
-                </tr>
-            {% else %}
-                <td colspan="2">
-                    <b style="color: red">로그인 후 거래가 가능합니다.</b>
-                </td>
-            {% endif %}
-            </tbody>
-        </table>
-    </div>
+                {% endif %}
+                </tbody>
+            </table>
+        </div>
 
-    <!-- Modal -->
-    <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="exampleModalLabel">
-                        <span id="modal_title"></span>주문 확인서</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <table class="table table-bordered">
-                        <tr>
-                            <th scope="row">기준가격(KRW)</th>
-                            <td id="modal_krw"></td>
-                        </tr>
-                        <tr>
-                            <th scope="row">주문수량</th>
-                            <td id="modal_quantity"></td>
-                        </tr>
-                        <tr>
-                            <th scope="row">주문총액(KRW)</th>
-                            <td id="modal_total"></td>
-                        </tr>
-                    </table>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
-                    <button type="button" class="btn btn-primary" id="modal_order_confirm_button"><span
-                            id="modal_order_confirm_type"></span>주문하기
-                    </button>
+        <!-- Modal -->
+        <div class="modal fade" id="exampleModal" tabindex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h1 class="modal-title fs-5" id="exampleModalLabel">
+                            <span id="modal_title"></span>주문 확인서</h1>
+                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                    </div>
+                    <div class="modal-body">
+                        <table class="table table-bordered">
+                            <tr>
+                                <th scope="row">기준가격(KRW)</th>
+                                <td id="modal_krw"></td>
+                            </tr>
+                            <tr>
+                                <th scope="row">주문수량</th>
+                                <td id="modal_quantity"></td>
+                            </tr>
+                            <tr>
+                                <th scope="row">주문총액(KRW)</th>
+                                <td id="modal_total"></td>
+                            </tr>
+                        </table>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                        <button type="button" class="btn btn-primary" id="modal_order_confirm_button"><span
+                                id="modal_order_confirm_type"></span>주문하기
+                        </button>
+                    </div>
                 </div>
             </div>
         </div>
+
     </div>
+{% endblock %}
+{% block js_tags %}
+    <script>
+        let crypto_name = "{{ crypto_name }}"
+        console.log(crypto_name)
 
-</div>
-</body>
+        let highPrice = document.getElementById("high_price");
+        let lowPrice = document.getElementById("low_price");
+        let prevClosingPrice = document.getElementById("prev_closing_price");
+        let signedChangePrice = document.getElementById("signed_change_price");
+        let highest52Price = document.getElementById("highest_52_week_price");
+        let highest52Date = document.getElementById("highest_52_week_date");
+        let lowest52Price = document.getElementById("lowest_52_week_price");
+        let lowest52Date = document.getElementById("lowest_52_week_date");
+        let currPriceTag = document.getElementById("currPriceTag");
+        let cryptoName = document.getElementById("crypto_name");
+        let targetPrice = document.getElementById("target_price");
+        let totalPrice = document.getElementById("total_price");
+        let quantity = document.getElementById("quantity");
 
-<script>
-    let crypto_name = "{{ crypto_name }}"
-    console.log(crypto_name)
+        cryptoName.innerHTML = crypto_name;
 
-    let highPrice = document.getElementById("high_price");
-    let lowPrice = document.getElementById("low_price");
-    let prevClosingPrice = document.getElementById("prev_closing_price");
-    let signedChangePrice = document.getElementById("signed_change_price");
-    let highest52Price = document.getElementById("highest_52_week_price");
-    let highest52Date = document.getElementById("highest_52_week_date");
-    let lowest52Price = document.getElementById("lowest_52_week_price");
-    let lowest52Date = document.getElementById("lowest_52_week_date");
-    let currPriceTag = document.getElementById("currPriceTag");
-    let cryptoName = document.getElementById("crypto_name");
-    let targetPrice = document.getElementById("target_price");
-    let totalPrice = document.getElementById("total_price");
-    let quantity = document.getElementById("quantity");
+        // 매도 매수 버튼
+        let buy_button = document.getElementById("buy_button");
+        let sell_button = document.getElementById("sell_button");
 
-    cryptoName.innerHTML = crypto_name;
+        // 모달 관련
+        let modal_title = document.getElementById("modal_title");
+        let modal_krw = document.getElementById("modal_krw");
+        let modal_quantity = document.getElementById("modal_quantity");
+        let modal_total = document.getElementById("modal_total");
+        let modal_order_confirm_type = document.getElementById("modal_order_confirm_type");
+        let modal_order_confirm_button = document.getElementById("modal_order_confirm_button");
 
-    // 매도 매수 버튼
-    let buy_button = document.getElementById("buy_button");
-    let sell_button = document.getElementById("sell_button");
+        let socket;
+        let KRW_PRICE;
+        let currHoga;
 
-    // 모달 관련
-    let modal_title = document.getElementById("modal_title");
-    let modal_krw = document.getElementById("modal_krw");
-    let modal_quantity = document.getElementById("modal_quantity");
-    let modal_total = document.getElementById("modal_total");
-    let modal_order_confirm_type = document.getElementById("modal_order_confirm_type");
-    let modal_order_confirm_button = document.getElementById("modal_order_confirm_button");
-
-    let socket;
-    let KRW_PRICE;
-    let currHoga;
-
-    const truncateDecimal = function (number) {
-        // 소수점 네 자리 이후 절삭
-        if (isNaN(number)) {
-            return "Error";
+        const truncateDecimal = function (number) {
+            // 소수점 네 자리 이후 절삭
+            if (isNaN(number)) {
+                return "Error";
+            }
+            var truncatedNumber = Math.floor(number * 1000) / 1000;
+            return truncatedNumber;
         }
-        var truncatedNumber = Math.floor(number * 1000) / 1000;
-        return truncatedNumber;
-    }
 
-    const checkDecimalLength = function (numberString) {
-        // 소수점을 기준으로 문자열 분리
-        let parts = numberString.split(".");
-        // 소수점 자리수 확인
-        if (parts.length === 2 && parts[1].length >= 4) {
-            return false;
+        const checkDecimalLength = function (numberString) {
+            // 소수점을 기준으로 문자열 분리
+            let parts = numberString.split(".");
+            // 소수점 자리수 확인
+            if (parts.length === 2 && parts[1].length >= 4) {
+                return false;
+            }
+            return true;
         }
-        return true;
-    }
 
-    const multiplyStrings = function (str1, str2) {
-        const num1 = parseFloat(str1);
-        const num2 = parseFloat(str2);
-        let result = num1 * num2;
-        result = Math.round(result * 1000) / 1000;
-        return result.toFixed(3);
-    }
-
-    const parseNumberWithDecimal = function (str) {
-        let numericValue = parseFloat(str);
-        if (isNaN(numericValue)) {
-            return "Error";
+        const multiplyStrings = function (str1, str2) {
+            const num1 = parseFloat(str1);
+            const num2 = parseFloat(str2);
+            let result = num1 * num2;
+            result = Math.round(result * 1000) / 1000;
+            return result.toFixed(3);
         }
-        return numericValue;
-    }
 
-    const generateUUID = function () {
-        let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
-            const r = Math.random() * 16 | 0;
-            const v = c === 'x' ? r : (r & 0x3 | 0x8);
-            return v.toString(16);
-        });
-        return uuid;
-    };
-
-    const updateInformations = function (result) {
-        highPrice.innerText = result.high_price;
-        lowPrice.innerText = result.low_price;
-        prevClosingPrice.innerText = result.prev_closing_price;
-        signedChangePrice.innerText = result.signed_change_price;
-        highest52Price.innerText = result.highest_52_week_price;
-        highest52Date.innerText = result.highest_52_week_date;
-        lowest52Price.innerText = result.lowest_52_week_price;
-        lowest52Date.innerText = result.lowest_52_week_date;
-    }
-
-    const addCommasToNumber = function (number) {
-        // 숫자를 문자열로 변환
-        let str = number.toString();
-
-        // 소수점을 기준으로 숫자를 분리
-        let parts = str.split(".");
-        let wholeNumber = parts[0]; // 정수 부분
-        let decimal = parts[1]; // 소수 부분
-
-        // 세 자리마다 콤마를 추가
-        let regex = /\B(?=(\d{3})+(?!\d))/g;
-        wholeNumber = wholeNumber.replace(regex, ",");
-
-        // 소수 부분이 있는 경우 정수 부분과 합치기
-        if (decimal) {
-            return wholeNumber + "." + decimal;
-        } else {
-            return wholeNumber;
+        const parseNumberWithDecimal = function (str) {
+            let numericValue = parseFloat(str);
+            if (isNaN(numericValue)) {
+                return "Error";
+            }
+            return numericValue;
         }
-    }
 
-    const filterRequest = function (filter) {
-        if (socket == undefined || socket == null) {
-            alert("웹소켓 연결이 존재하지 않습니다.");
-            return;
-        }
-        socket.send(filter);
-    };
-
-    const getRealTimePrice = function () {
-        if (socket != undefined || socket != null) {
-            socket.close();
-        }
-        socket = new WebSocket("wss://api.upbit.com/websocket/v1");
-        socket.binaryType = "arraybuffer";
-        socket.onopen = function (e) {
-            filterRequest(
-                "[{'ticket': '" + generateUUID() + "'}, {'type': 'ticker', 'codes': ['" + crypto_name + "']}]"
-            );
+        const generateUUID = function () {
+            let uuid = 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replace(/[xy]/g, function (c) {
+                const r = Math.random() * 16 | 0;
+                const v = c === 'x' ? r : (r & 0x3 | 0x8);
+                return v.toString(16);
+            });
+            return uuid;
         };
-        socket.onclose = function (e) {
-            console.log("소켓을 종료했습니다.")
-            socket = undefined;
+
+        const updateInformations = function (result) {
+            highPrice.innerText = result.high_price;
+            lowPrice.innerText = result.low_price;
+            prevClosingPrice.innerText = result.prev_closing_price;
+            signedChangePrice.innerText = result.signed_change_price;
+            highest52Price.innerText = result.highest_52_week_price;
+            highest52Date.innerText = result.highest_52_week_date;
+            lowest52Price.innerText = result.lowest_52_week_price;
+            lowest52Date.innerText = result.lowest_52_week_date;
         }
-        socket.onmessage = function (e) {
-            let decoder = new TextDecoder("utf-8");
-            let dataArray = new Uint8Array(e.data);
-            let decodedString = decoder.decode(dataArray);
-            let result = JSON.parse(decodedString);
-            KRW_PRICE = result.trade_price;
-            targetPrice.innerHTML = result.trade_price;
-            updateInformations(result);
+
+        const addCommasToNumber = function (number) {
+            // 숫자를 문자열로 변환
+            let str = number.toString();
+
+            // 소수점을 기준으로 숫자를 분리
+            let parts = str.split(".");
+            let wholeNumber = parts[0]; // 정수 부분
+            let decimal = parts[1]; // 소수 부분
+
+            // 세 자리마다 콤마를 추가
+            let regex = /\B(?=(\d{3})+(?!\d))/g;
+            wholeNumber = wholeNumber.replace(regex, ",");
+
+            // 소수 부분이 있는 경우 정수 부분과 합치기
+            if (decimal) {
+                return wholeNumber + "." + decimal;
+            } else {
+                return wholeNumber;
+            }
         }
-    };
 
-    getRealTimePrice();
+        const filterRequest = function (filter) {
+            if (socket == undefined || socket == null) {
+                alert("웹소켓 연결이 존재하지 않습니다.");
+                return;
+            }
+            socket.send(filter);
+        };
 
-    let hogaData = [];
+        const getRealTimePrice = function () {
+            if (socket != undefined || socket != null) {
+                socket.close();
+            }
+            socket = new WebSocket("wss://api.upbit.com/websocket/v1");
+            socket.binaryType = "arraybuffer";
+            socket.onopen = function (e) {
+                filterRequest(
+                    "[{'ticket': '" + generateUUID() + "'}, {'type': 'ticker', 'codes': ['" + crypto_name + "']}]"
+                );
+            };
+            socket.onclose = function (e) {
+                console.log("소켓을 종료했습니다.")
+                socket = undefined;
+            }
+            socket.onmessage = function (e) {
+                let decoder = new TextDecoder("utf-8");
+                let dataArray = new Uint8Array(e.data);
+                let decodedString = decoder.decode(dataArray);
+                let result = JSON.parse(decodedString);
+                KRW_PRICE = result.trade_price;
+                targetPrice.innerHTML = result.trade_price;
+                updateInformations(result);
+            }
+        };
 
-    // 호가 차트 초기화
-    const ctx = document.getElementById('myChart').getContext('2d');
-    const myChart = new Chart(ctx, {
-        type: 'line',
-        data: {
-            labels: [], // X축에 표시할 라벨
-            datasets: [{
-                label: 'KRW 단위 호가', // 차트의 라벨
-                data: [], // 호가 데이터
-                backgroundColor: 'rgb(247, 147, 26)', // 차트 영역의 배경색
-                borderColor: 'rgb(247, 147, 26)', // 차트의 선 색상
-                borderWidth: 2 // 차트의 선 굵기
-            }]
-        },
-        options: {
-            responsive: true,
-            maintainAspectRatio: false,
-            scales: {
-                x: {
-                    display: true
-                },
-                y: {
-                    display: true
+        getRealTimePrice();
+
+        let hogaData = [];
+
+        // 호가 차트 초기화
+        const ctx = document.getElementById('myChart').getContext('2d');
+        const myChart = new Chart(ctx, {
+            type: 'line',
+            data: {
+                labels: [], // X축에 표시할 라벨
+                datasets: [{
+                    label: 'KRW 단위 호가', // 차트의 라벨
+                    data: [], // 호가 데이터
+                    backgroundColor: 'rgb(247, 147, 26)', // 차트 영역의 배경색
+                    borderColor: 'rgb(247, 147, 26)', // 차트의 선 색상
+                    borderWidth: 2 // 차트의 선 굵기
+                }]
+            },
+            options: {
+                responsive: true,
+                maintainAspectRatio: false,
+                scales: {
+                    x: {
+                        display: true
+                    },
+                    y: {
+                        display: true
+                    }
+                }
+            }
+        });
+
+        const getHourMinuteSecond = function () {
+            const now = new Date();
+            const hours = now.getHours(); // 현재 시간(0-23)
+            const minutes = now.getMinutes(); // 현재 분(0-59)
+            const seconds = now.getSeconds(); // 현재 초(0-59)
+
+            return hours.toString() + ":" + minutes.toString() + ":" + seconds.toString();
+        }
+
+        // 호가 데이터를 차트에 추가하고 업데이트
+        function updateHogaChart(newData) {
+            const maxDataPoints = 10;
+            if (hogaData.length == maxDataPoints) {
+                hogaData.shift(); // 배열에서 첫 번째 요소를 제거하고, 제거된 요소를 반환. 배열의 첫 번째 요소를 제거하여 최대 개수 유지
+            }
+            // 호가 데이터를 배열에 추가
+            hogaData.push(newData);
+
+            if (myChart.data.labels.length == maxDataPoints) {
+                myChart.data.labels.shift();
+            }
+            myChart.data.labels.push(getHourMinuteSecond());
+            myChart.data.datasets[0].data = hogaData; // 호가 데이터 설정
+            myChart.update(); // 차트 업데이트
+        }
+
+        // 호가 데이터 업데이트
+        function updateDataEvery2Seconds() {
+            console.log("updateDataEvery2Seconds");
+            currHoga = KRW_PRICE;
+            console.log(currHoga);
+            currPriceTag.innerText = addCommasToNumber(currHoga);
+            updateHogaChart(currHoga);
+
+            // 만약 사용자가 입력한 수량이 0보다 클 경우 주문 총액을 변경해준다.
+            let checkQuantity = parseNumberWithDecimal(quantity.value);
+            console.log("checkQuantity: " + checkQuantity);
+            if (!(checkQuantity === "Error") && checkQuantity > 0) {
+                console.log("사용자가 입력한 수량: " + checkQuantity);
+                totalPrice.innerHTML = multiplyStrings(checkQuantity, currHoga);
+            }
+        }
+
+        // 일정 시간마다 호가 데이터 업데이트 호출
+        setInterval(updateDataEvery2Seconds, 2000); // 2초마다 업데이트
+
+
+        // select 태그의 요소 중 하나를 클릭했을 때 서버로 GET 요청 처리하기.
+        const cryptoNameSelect = document.getElementById('crypto_name_select');
+        cryptoNameSelect.addEventListener('change', function () {
+            socket.close();
+            const selectedOption = cryptoNameSelect.value;
+            const url = '/crypto/?crypto_name=' + selectedOption;
+            window.location.href = url;
+        });
+
+        // 사용자가 주문을 하기 위해 input태그에 입력할 경우 이벤트 처리
+        const handleInput = function (event) {
+            let inputStr = event.target.value;
+            console.log("사용자 입력: " + inputStr);
+
+            if (isNaN(inputStr)) {
+                alert("수량은 숫자만 입력할 수 있습니다.");
+                event.target.value = "";
+                totalPrice.innerHTML = 0;
+            } else if (checkDecimalLength(inputStr) === false) {
+                alert("수량은 소수점 세 자리 이하만 입력할 수 있습니다.");
+                event.target.value = "";
+                totalPrice.innerHTML = 0;
+            } else {
+                let result = multiplyStrings(inputStr, currHoga)
+                if (isNaN(result)) {
+                    totalPrice.innerHTML = 0;
+                } else {
+                    totalPrice.innerHTML = result;
                 }
             }
         }
-    });
 
-    const getHourMinuteSecond = function () {
-        const now = new Date();
-        const hours = now.getHours(); // 현재 시간(0-23)
-        const minutes = now.getMinutes(); // 현재 분(0-59)
-        const seconds = now.getSeconds(); // 현재 초(0-59)
-
-        return hours.toString() + ":" + minutes.toString() + ":" + seconds.toString();
-    }
-
-    // 호가 데이터를 차트에 추가하고 업데이트
-    function updateHogaChart(newData) {
-        const maxDataPoints = 10;
-        if (hogaData.length == maxDataPoints) {
-            hogaData.shift(); // 배열에서 첫 번째 요소를 제거하고, 제거된 요소를 반환. 배열의 첫 번째 요소를 제거하여 최대 개수 유지
-        }
-        // 호가 데이터를 배열에 추가
-        hogaData.push(newData);
-
-        if (myChart.data.labels.length == maxDataPoints) {
-            myChart.data.labels.shift();
-        }
-        myChart.data.labels.push(getHourMinuteSecond());
-        myChart.data.datasets[0].data = hogaData; // 호가 데이터 설정
-        myChart.update(); // 차트 업데이트
-    }
-
-    // 호가 데이터 업데이트
-    function updateDataEvery2Seconds() {
-        console.log("updateDataEvery2Seconds");
-        currHoga = KRW_PRICE;
-        console.log(currHoga);
-        currPriceTag.innerText = addCommasToNumber(currHoga);
-        updateHogaChart(currHoga);
-
-        // 만약 사용자가 입력한 수량이 0보다 클 경우 주문 총액을 변경해준다.
-        let checkQuantity = parseNumberWithDecimal(quantity.value);
-        console.log("checkQuantity: " + checkQuantity);
-        if (!(checkQuantity === "Error") && checkQuantity > 0) {
-            console.log("사용자가 입력한 수량: " + checkQuantity);
-            totalPrice.innerHTML = multiplyStrings(checkQuantity, currHoga);
-        }
-    }
-
-    // 일정 시간마다 호가 데이터 업데이트 호출
-    setInterval(updateDataEvery2Seconds, 2000); // 2초마다 업데이트
-
-
-    // select 태그의 요소 중 하나를 클릭했을 때 서버로 GET 요청 처리하기.
-    const cryptoNameSelect = document.getElementById('crypto_name_select');
-    cryptoNameSelect.addEventListener('change', function () {
-        socket.close();
-        const selectedOption = cryptoNameSelect.value;
-        const url = '/crypto/?crypto_name=' + selectedOption;
-        window.location.href = url;
-    });
-
-    // 사용자가 주문을 하기 위해 input태그에 입력할 경우 이벤트 처리
-    const handleInput = function (event) {
-        let inputStr = event.target.value;
-        console.log("사용자 입력: " + inputStr);
-
-        if (isNaN(inputStr)) {
-            alert("수량은 숫자만 입력할 수 있습니다.");
-            event.target.value = "";
-            totalPrice.innerHTML = 0;
-        } else if (checkDecimalLength(inputStr) === false) {
-            alert("수량은 소수점 세 자리 이하만 입력할 수 있습니다.");
-            event.target.value = "";
-            totalPrice.innerHTML = 0;
-        } else {
-            let result = multiplyStrings(inputStr, currHoga)
-            if (isNaN(result)) {
-                totalPrice.innerHTML = 0;
-            } else {
-                totalPrice.innerHTML = result;
-            }
-        }
-    }
-
-    // 사용자가 매수 버튼을 눌렀을 경우 이벤트 처리
-    buy_button.addEventListener("click", function () {
-        const freezePrice = currHoga;
-        modal_title.innerHTML = "매수";
-        modal_krw.innerHTML = freezePrice;
-        modal_quantity.innerHTML = quantity.value;
-        modal_total.innerHTML = multiplyStrings(modal_krw.innerText, modal_quantity.innerText);
-        modal_order_confirm_type.innerHTML = "매수"
-    });
-
-    const sendBuyRequest = function () {
-        const url = "{{ request.path }}" + "buy/";
-        return fetch(url, {
-            method: "POST",
-            headers: {
-                "X-CSRFToken": "{{ csrf_token }}",
-                "Content-type": "application/json",
-            },
-            body: JSON.stringify({
-                "cryptoName": crypto_name,
-                "targetPrice": modal_krw.innerText,
-                "quantity": modal_quantity.innerText,
-                "totalPrice": modal_total.innerText,
-            }),
-        }).then(function (response) {
-            return response.json();
-        }).catch(function () {
-            console.log("암호화폐 매수 중 error 발생...")
+        // 사용자가 매수 버튼을 눌렀을 경우 이벤트 처리
+        buy_button.addEventListener("click", function () {
+            const freezePrice = currHoga;
+            modal_title.innerHTML = "매수";
+            modal_krw.innerHTML = freezePrice;
+            modal_quantity.innerHTML = quantity.value;
+            modal_total.innerHTML = multiplyStrings(modal_krw.innerText, modal_quantity.innerText);
+            modal_order_confirm_type.innerHTML = "매수"
         });
-    }
 
-    // 사용자가 최종 confirm 버튼을 눌렀을 경우 이벤트 처리
-    modal_order_confirm_button.addEventListener("click", async function () {
-        if (modal_order_confirm_type.innerText === "매수") {
-            console.log("사용자가 매수 confirm 버튼 클릭함.");
-            let response = await sendBuyRequest();
-            console.log(response);
-        } else if (modal_order_confirm_type.innerText === "매도") {
-            console.log("사용자가 매도 confirm 버튼 클릭함.");
+        const sendBuyRequest = function () {
+            const url = "{{ request.path }}" + "buy/";
+            return fetch(url, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-type": "application/json",
+                },
+                body: JSON.stringify({
+                    "cryptoName": crypto_name,
+                    "targetPrice": modal_krw.innerText,
+                    "quantity": modal_quantity.innerText,
+                    "totalPrice": modal_total.innerText,
+                }),
+            }).then(function (response) {
+                return response.json();
+            }).catch(function () {
+                console.log("암호화폐 매수 중 error 발생...")
+            });
         }
-    });
-</script>
 
-</html>
+        const sendSellRequest = function () {
+            const url = "{{ request.path }}" + "/sell/";
+            return fetch(url, {
+                method: "POST",
+                headers: {
+                    "X-CSRFToken": "{{ csrf_token }}",
+                    "Content-type": "application/json",
+                },
+                body: JSON.stringify({
+                    "cryptoName": crypto_name,
+                    "targetPrice": modal_krw.innerText,
+                    "quantity": modal_quantity.innerText,
+                    "totalPrice": modal_total.innerText,
+                }),
+            }).then(function (response) {
+                return response;
+            }).catch(function () {
+                console.log("암호화폐 매도 중 error 발생...")
+            })
+        }
+
+        // 사용자가 최종 confirm 버튼을 눌렀을 경우 이벤트 처리
+        modal_order_confirm_button.addEventListener("click", async function () {
+            if (modal_order_confirm_type.innerText === "매수") {
+                console.log("사용자가 매수 confirm 버튼 클릭함.");
+                let response = await sendBuyRequest();
+                console.log(response);
+            } else if (modal_order_confirm_type.innerText === "매도") {
+                console.log("사용자가 매도 confirm 버튼 클릭함.");
+                let response = await sendSellRequest();
+                console.log("---------- 매도 주문 후 받은 response ----------");
+                console.log(response);
+            }
+        });
+
+
+        // 사용자가 바깥 매도 버튼을 눌렀을 때 이벤트 처리
+        sell_button.addEventListener("click", function () {
+            const freezePrice = currHoga;
+            modal_title.innerHTML = "매도";
+            modal_krw.innerHTML = freezePrice;
+            modal_quantity.innerHTML = quantity.value;
+            modal_total.innerHTML = multiplyStrings(modal_krw.innerText, modal_quantity.innerText);
+            modal_order_confirm_type.innerHTML = "매도"
+        })
+    </script>
+{% endblock %}

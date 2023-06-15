@@ -1,0 +1,43 @@
+{% extends 'crypto/base.html' %}
+{% block style_tags %}
+    <style>
+        div.container {
+            width: 70%;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+{#        <select class="form-select" aria-label="Default select example">#}
+{#            <option selected>여기를 클릭해서 특정 암호화폐 거래 내역만 조회하세요.</option>#}
+{#            <option value="1">One</option>#}
+{#            <option value="2">Two</option>#}
+{#            <option value="3">Three</option>#}
+{#        </select>#}
+        <table class="table table-striped">
+            <thead>
+            <tr>
+                <th>암호화폐 이름</th>
+                <th>거래 수량</th>
+                <th>거래 단가(KRW)</th>
+                <th>총 거래액(KRW)</th>
+                <th>거래 종료(매수/매도)</th>
+                <th>거래일</th>
+            </tr>
+            </thead>
+            <tbody>
+            {% for item in allHistoryList %}
+                <tr>
+                    <td>{{ item.crypto_name }}</td>
+                    <td>{{ item.quantity }}</td>
+                    <td>{{ item.target_price }}</td>
+                    <td>{{ item.total_price }}</td>
+                    <td>{{ item.type }}</td>
+                    <td>{{ item.date|date:"Y-m-d" }}&nbsp;{{ item.date|time:"H:i:s" }}</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+    </div>
+{% endblock %}

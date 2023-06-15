@@ -169,3 +169,26 @@ def buy(request):
         response = HttpResponse(json_data, content_type='application/json')
         response.status_code = 402
         return response
+
+
+def sell(request):
+    decoded_data = request.body.decode("utf-8")
+    request_data = json.loads(decoded_data)
+    print(request_data)
+
+    curr_quantity = CryptoBalance.objects.filter(
+        Q(user=request.user) & Q(crypto_name=request_data.get('cryptoName'))
+    )
+
+
+    if curr_quantity.exists():
+        pass
+    else:
+        print("매도할 수 없음")
+        response_data = {
+            "message": "Balance is not enough for sell."
+        }
+        json_data = json.dumps(response_data)
+        response = HttpResponse(json_data, content_type="application/json")
+        response.status_code = 402 # payment required
+

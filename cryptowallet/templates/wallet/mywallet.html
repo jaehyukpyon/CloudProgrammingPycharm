@@ -1,205 +1,210 @@
-<!DOCTYPE html>
-<html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <title>MyWallet</title>
-
-    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"
-            integrity="sha384-I7E8VVD/ismYTF4hNIPjVp/Zjvgyol6VFvRkX/vR+Vc4jQkC+hVqc2pM8ODewa9r"
-            crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"
-            integrity="sha384-fbbOQedDUMZZ5KreZpsbe1LCZPVmfTnH7ois6mU1QK+m14rQ1l2bGBq41eYeM/fS"
-            crossorigin="anonymous"></script>
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet"
-          integrity="sha384-9ndCyUaIbzAi2FUVXJi0CjmCapSmO7SnpJef0486qhLnuZ2cdeRhO02iuK6FUUVM" crossorigin="anonymous">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-</head>
-<body>
-<div class="container">
-
+{% extends 'crypto/base.html' %}
+{% block content %}
     <div class="container">
-        <canvas id="doughnutChart"></canvas>
+
+        <div class="container">
+            <canvas id="doughnutChart"></canvas>
+        </div>
+
+        <div class="container">
+            <h3>내 암호화폐 잔고</h3>
+            {% if count > 0 %}
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>암호화폐 이름</th>
+                        <th>보유 수량</th>
+                        <th>총 투자 금액(KRW)</th>
+                        <th>매수 평균 단가(KRW)</th>
+                        <th>최종 거래일</th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    {% for item in cryptoList %}
+                        <tr>
+                            <td>{{ item.cryptoName }}</td>
+                            <td>{{ item.balance }}</td>
+                            <td>{{ item.krwInvestment }}</td>
+                            <td>{{ item.avgBuyPrice }}</td>
+                            <td>{{ item.lastTradeDateTime }}</td>
+                        </tr>
+                    {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <h5>거래 내역이 없습니다.</h5>
+            {% endif %}
+        </div>
     </div>
-
-    <div class="container">
-        <h3>내 암호화폐 잔고</h3>
-        {% if count > 0 %}
-            {% for item in list %}
-                <p>{{ item.cryptoName }}, {{ item.balance }}, {{ item.lastTradeDateTime }}</p>
-            {% endfor %}
-        {% else %}
-            <h5>거래 내역이 없습니다.</h5>
-        {% endif %}
-    </div>
-</div>
-</body>
-
-<script>
-    function getColorByElement(element) {
-        const colors = {
-            'KRW-BTC': '#FF0000',
-            'KRW-ETH': '#00FF00',
-            'KRW-NEO': '#0000FF',
-            'KRW-MTL': '#FF00FF',
-            'KRW-XRP': '#FFFF00',
-            'KRW-ETC': '#00FFFF',
-            'KRW-SNT': '#800080',
-            'KRW-WAVES': '#008000',
-            'KRW-XEM': '#808000',
-            'KRW-QTUM': '#FFA500',
-            'KRW-LSK': '#FF1493',
-            'KRW-STEEM': '#C0C0C0',
-            'KRW-XLM': '#008080',
-            'KRW-ARDR': '#800000',
-            'KRW-ARK': '#FFC0CB',
-            'KRW-STORJ': '#FF4500',
-            'KRW-GRS': '#008B8B',
-            'KRW-REP': '#2E8B57',
-            'KRW-ADA': '#FF8C00',
-            'KRW-SBD': '#FFD700',
-            'KRW-POWR': '#FF6347',
-            'KRW-BTG': '#DAA520',
-            'KRW-ICX': '#FF69B4',
-            'KRW-EOS': '#3CB371',
-            'KRW-TRX': '#7B68EE',
-            'KRW-SC': '#BA55D3',
-            'KRW-ONT': '#DDA0DD',
-            'KRW-ZIL': '#6495ED',
-            'KRW-POLYX': '#00CED1',
-            'KRW-ZRX': '#4169E1',
-            'KRW-LOOM': '#6A5ACD',
-            'KRW-BCH': '#FA8072',
-            'KRW-BAT': '#F08080',
-            'KRW-IOST': '#AFEEEE',
-            'KRW-RFR': '#BDB76B',
-            'KRW-CVC': '#FFB6C1',
-            'KRW-IQ': '#ADFF2F',
-            'KRW-IOTA': '#F0FFF0',
-            'KRW-HIFI': '#7FFF00',
-            'KRW-ONG': '#FFFACD',
-            'KRW-GAS': '#ADD8E6',
-            'KRW-UPP': '#F5DEB3',
-            'KRW-ELF': '#FAFAD2',
-            'KRW-KNC': '#D8BFD8',
-            'KRW-BSV': '#FFEF00',
-            'KRW-THETA': '#FFF0F5',
-            'KRW-QKC': '#B0C4DE',
-            'KRW-BTT': '#FF1493',
-            'KRW-MOC': '#FF00FF',
-            'KRW-ENJ': '#EE82EE',
-            'KRW-TFUEL': '#FFA07A',
-            'KRW-MANA': '#B0E0E6',
-            'KRW-ANKR': '#800080',
-            'KRW-AERGO': '#FF6347',
-            'KRW-ATOM': '#008000',
-            'KRW-TT': '#808000',
-            'KRW-CRE': '#FF00FF',
-            'KRW-MBL': '#FF1493',
-            'KRW-WAXP': '#C0C0C0',
-            'KRW-HBAR': '#008080',
-            'KRW-MED': '#800000',
-            'KRW-MLK': '#FFC0CB',
-            'KRW-STPT': '#FF4500',
-            'KRW-ORBS': '#008B8B',
-            'KRW-VET': '#2E8B57',
-            'KRW-CHZ': '#FF8C00',
-            'KRW-STMX': '#FFD700',
-            'KRW-DKA': '#FF6347',
-            'KRW-HIVE': '#DAA520',
-            'KRW-KAVA': '#FF69B4',
-            'KRW-AHT': '#3CB371',
-            'KRW-LINK': '#7B68EE',
-            'KRW-XTZ': '#BA55D3',
-            'KRW-BORA': '#DDA0DD',
-            'KRW-JST': '#6495ED',
-            'KRW-CRO': '#00CED1',
-            'KRW-TON': '#4169E1',
-            'KRW-SXP': '#6A5ACD',
-            'KRW-HUNT': '#FA8072',
-            'KRW-PLA': '#F08080',
-            'KRW-DOT': '#AFEEEE',
-            'KRW-MVL': '#BDB76B',
-            'KRW-STRAX': '#FFB6C1',
-            'KRW-AQT': '#ADFF2F',
-            'KRW-GLM': '#F0FFF0',
-            'KRW-SSX': '#7FFF00',
-            'KRW-META': '#FFFACD',
-            'KRW-FCT2': '#ADD8E6',
-            'KRW-CBK': '#F5DEB3',
-            'KRW-SAND': '#FAFAD2',
-            'KRW-HPO': '#D8BFD8',
-            'KRW-DOGE': '#FFEF00',
-            'KRW-STRK': '#FFF0F5',
-            'KRW-PUNDIX': '#B0C4DE',
-            'KRW-FLOW': '#FF1493',
-            'KRW-DAWN': '#FF00FF',
-            'KRW-AXS': '#EE82EE',
-            'KRW-STX': '#FFA07A',
-            'KRW-XEC': '#B0E0E6',
-            'KRW-SOL': '#800080',
-            'KRW-MATIC': '#FF6347',
-            'KRW-AAVE': '#008000',
-            'KRW-1INCH': '#808000',
-            'KRW-ALGO': '#FF00FF',
-            'KRW-NEAR': '#FF1493',
-            'KRW-AVAX': '#C0C0C0',
-            'KRW-T': '#008080',
-            'KRW-CELO': '#800000',
-            'KRW-GMT': '#FFC0CB',
-            'KRW-APT': '#FF4500',
-            'KRW-SHIB': '#008B8B',
-            'KRW-MASK': '#2E8B57',
-            'KRW-ARB': '#FF8C00',
-            'KRW-EGLD': '#FFD700',
-            'KRW-SUI': '#FF6347',
-            'KRW-GRT': '#DAA520'
-        };
-        return colors[element] || '#000000';
-    }
-
-    const getRandomColor = function () {
-        let currentTime = new Date().getTime();
-        let randomColor = '#' + (currentTime + Math.floor(Math.random() * 1000)).toString(16);
-        return randomColor;
-    }
-
-    const replaceSingleQuotes = function (str) {
-        return str.replace(/'/g, '"');
-    }
-
-    // 사용자의 총 krw 투자로 보여주는 그래프
-    const cryptoCount = parseInt('{{ count }}');
-
-    const cryptoList = JSON.parse(replaceSingleQuotes("{{ list|safe }}"));
-    console.log(cryptoList);
-    const labels = [];
-    const data = [];
-    const backgroundColor = [];
-    if (cryptoCount > 0) {
-        for (let i = 0; i < cryptoCount; i++) {
-            let temp = cryptoList[i];
-            labels.push(temp.cryptoName);
-            data.push(parseFloat(temp.krwInvestment))
-            backgroundColor.push(getColorByElement(temp.cryptoName));
+{% endblock %}
+{% block js_tags %}
+    <script>
+        const getColorByElement = function (element) {
+            const colors = {
+                'KRW-BTC': '#FF0000',
+                'KRW-ETH': '#00FF00',
+                'KRW-NEO': '#0000FF',
+                'KRW-MTL': '#FF00FF',
+                'KRW-XRP': '#FFFF00',
+                'KRW-ETC': '#00FFFF',
+                'KRW-SNT': '#800080',
+                'KRW-WAVES': '#008000',
+                'KRW-XEM': '#808000',
+                'KRW-QTUM': '#FFA500',
+                'KRW-LSK': '#FF1493',
+                'KRW-STEEM': '#C0C0C0',
+                'KRW-XLM': '#008080',
+                'KRW-ARDR': '#800000',
+                'KRW-ARK': '#FFC0CB',
+                'KRW-STORJ': '#FF4500',
+                'KRW-GRS': '#008B8B',
+                'KRW-REP': '#2E8B57',
+                'KRW-ADA': '#FF8C00',
+                'KRW-SBD': '#FFD700',
+                'KRW-POWR': '#FF6347',
+                'KRW-BTG': '#DAA520',
+                'KRW-ICX': '#FF69B4',
+                'KRW-EOS': '#3CB371',
+                'KRW-TRX': '#7B68EE',
+                'KRW-SC': '#BA55D3',
+                'KRW-ONT': '#DDA0DD',
+                'KRW-ZIL': '#6495ED',
+                'KRW-POLYX': '#00CED1',
+                'KRW-ZRX': '#4169E1',
+                'KRW-LOOM': '#6A5ACD',
+                'KRW-BCH': '#FA8072',
+                'KRW-BAT': '#F08080',
+                'KRW-IOST': '#AFEEEE',
+                'KRW-RFR': '#BDB76B',
+                'KRW-CVC': '#FFB6C1',
+                'KRW-IQ': '#ADFF2F',
+                'KRW-IOTA': '#F0FFF0',
+                'KRW-HIFI': '#7FFF00',
+                'KRW-ONG': '#FFFACD',
+                'KRW-GAS': '#ADD8E6',
+                'KRW-UPP': '#F5DEB3',
+                'KRW-ELF': '#FAFAD2',
+                'KRW-KNC': '#D8BFD8',
+                'KRW-BSV': '#FFEF00',
+                'KRW-THETA': '#FFF0F5',
+                'KRW-QKC': '#B0C4DE',
+                'KRW-BTT': '#FF1493',
+                'KRW-MOC': '#FF00FF',
+                'KRW-ENJ': '#EE82EE',
+                'KRW-TFUEL': '#FFA07A',
+                'KRW-MANA': '#B0E0E6',
+                'KRW-ANKR': '#800080',
+                'KRW-AERGO': '#FF6347',
+                'KRW-ATOM': '#008000',
+                'KRW-TT': '#808000',
+                'KRW-CRE': '#FF00FF',
+                'KRW-MBL': '#FF1493',
+                'KRW-WAXP': '#C0C0C0',
+                'KRW-HBAR': '#008080',
+                'KRW-MED': '#800000',
+                'KRW-MLK': '#FFC0CB',
+                'KRW-STPT': '#FF4500',
+                'KRW-ORBS': '#008B8B',
+                'KRW-VET': '#2E8B57',
+                'KRW-CHZ': '#FF8C00',
+                'KRW-STMX': '#FFD700',
+                'KRW-DKA': '#FF6347',
+                'KRW-HIVE': '#DAA520',
+                'KRW-KAVA': '#FF69B4',
+                'KRW-AHT': '#3CB371',
+                'KRW-LINK': '#7B68EE',
+                'KRW-XTZ': '#BA55D3',
+                'KRW-BORA': '#DDA0DD',
+                'KRW-JST': '#6495ED',
+                'KRW-CRO': '#00CED1',
+                'KRW-TON': '#4169E1',
+                'KRW-SXP': '#6A5ACD',
+                'KRW-HUNT': '#FA8072',
+                'KRW-PLA': '#F08080',
+                'KRW-DOT': '#AFEEEE',
+                'KRW-MVL': '#BDB76B',
+                'KRW-STRAX': '#FFB6C1',
+                'KRW-AQT': '#ADFF2F',
+                'KRW-GLM': '#F0FFF0',
+                'KRW-SSX': '#7FFF00',
+                'KRW-META': '#FFFACD',
+                'KRW-FCT2': '#ADD8E6',
+                'KRW-CBK': '#F5DEB3',
+                'KRW-SAND': '#FAFAD2',
+                'KRW-HPO': '#D8BFD8',
+                'KRW-DOGE': '#FFEF00',
+                'KRW-STRK': '#FFF0F5',
+                'KRW-PUNDIX': '#B0C4DE',
+                'KRW-FLOW': '#FF1493',
+                'KRW-DAWN': '#FF00FF',
+                'KRW-AXS': '#EE82EE',
+                'KRW-STX': '#FFA07A',
+                'KRW-XEC': '#B0E0E6',
+                'KRW-SOL': '#800080',
+                'KRW-MATIC': '#FF6347',
+                'KRW-AAVE': '#008000',
+                'KRW-1INCH': '#808000',
+                'KRW-ALGO': '#FF00FF',
+                'KRW-NEAR': '#FF1493',
+                'KRW-AVAX': '#C0C0C0',
+                'KRW-T': '#008080',
+                'KRW-CELO': '#800000',
+                'KRW-GMT': '#FFC0CB',
+                'KRW-APT': '#FF4500',
+                'KRW-SHIB': '#008B8B',
+                'KRW-MASK': '#2E8B57',
+                'KRW-ARB': '#FF8C00',
+                'KRW-EGLD': '#FFD700',
+                'KRW-SUI': '#FF6347',
+                'KRW-GRT': '#DAA520'
+            };
+            return colors[element] || '#000000';
         }
-    }
+    </script>
 
-    const ctx = document.getElementById('doughnutChart').getContext('2d');
-    const chartData = {
-        labels: labels,
-        datasets: [{
-            data: data,
-            backgroundColor: backgroundColor,
-        }]
-    };
-    const chartOptions = {
-        responsive: true,
-        maintainAspectRatio: false,
-    };
-    const doughnutChart = new Chart(ctx, {
-        type: 'doughnut',
-        data: chartData,
-        options: chartOptions
-    });
-</script>
-</html>
+    <script>
+        const getRandomColor = function () {
+            let currentTime = new Date().getTime();
+            let randomColor = '#' + (currentTime + Math.floor(Math.random() * 1000)).toString(16);
+            return randomColor;
+        }
+
+        const replaceSingleQuotes = function (str) {
+            return str.replace(/'/g, '"');
+        }
+
+        // 사용자의 총 krw 투자로 보여주는 그래프
+        const cryptoCount = parseInt('{{ count }}');
+        const cryptoList = JSON.parse(replaceSingleQuotes("{{ cryptoList|safe }}"));
+        console.log(cryptoList);
+        const labels = [];
+        const data = [];
+        const backgroundColor = [];
+        if (cryptoCount > 0) {
+            for (let i = 0; i < cryptoCount; i++) {
+                let temp = cryptoList[i];
+                labels.push(temp.cryptoName);
+                data.push(parseFloat(temp.krwInvestment))
+                backgroundColor.push(getColorByElement(temp.cryptoName));
+            }
+        }
+
+        const ctx = document.getElementById('doughnutChart').getContext('2d');
+        const chartData = {
+            labels: labels,
+            datasets: [{
+                data: data,
+                backgroundColor: backgroundColor,
+            }]
+        };
+        const chartOptions = {
+            responsive: true,
+            maintainAspectRatio: false,
+        };
+        const doughnutChart = new Chart(ctx, {
+            type: 'doughnut',
+            data: chartData,
+            options: chartOptions
+        });
+    </script>
+{% endblock %}
