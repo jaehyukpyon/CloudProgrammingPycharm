@@ -191,12 +191,17 @@ def sell(request):
             current_krw_balance = KRWBalance.objects.filter(user=request.user).first()
             current_krw_balance.balance = round_down_to_three_decimal_places(
                 current_krw_balance.balance + Decimal(request_data.get("totalPrice")))
-            current_crypto_balance.balance = round_down_to_three_decimal_places(
+
+            check = round_down_to_three_decimal_places(
                 current_crypto_balance.balance - request_sell_quantity)
-            current_crypto_balance.krw_investment = round_down_to_three_decimal_places(
-                current_crypto_balance.krw_investment - (current_crypto_balance.avg_buy_price * request_sell_quantity))
+            if not check == Decimal(0.000):
+                current_crypto_balance.balance = check
+                current_crypto_balance.krw_investment = round_down_to_three_decimal_places(
+                    current_crypto_balance.krw_investment - (current_crypto_balance.avg_buy_price * request_sell_quantity))
+                current_crypto_balance.save()
+            else:
+                current_crypto_balance.delete()
             current_krw_balance.save()
-            current_crypto_balance.save()
             # TradeHistory
             new_trade_history = TradeHistory.objects.create(user=request.user,
                                                             crypto_name=request_data.get("cryptoName"),

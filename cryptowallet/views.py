@@ -17,8 +17,8 @@ def index(request):
         return redirect("/crypto/")
 
     all_crypto_balance = CryptoBalance.objects.filter(user=request.user)
+    response_data = {}
     if all_crypto_balance.exists():
-        response_data = {}
         all_list = []
         for data in all_crypto_balance:
             temp_data = {
