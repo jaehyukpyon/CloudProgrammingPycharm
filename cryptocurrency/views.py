@@ -176,19 +176,46 @@ def sell(request):
     request_data = json.loads(decoded_data)
     print(request_data)
 
-    curr_quantity = CryptoBalance.objects.filter(
+    current_crypto_balance_check = CryptoBalance.objects.filter(
         Q(user=request.user) & Q(crypto_name=request_data.get('cryptoName'))
     )
 
+    if current_crypto_balance_check.exists():
+        current_crypto_balance = current_crypto_balance_check.first()
+        current_balance = current_crypto_balance.balance
+        request_sell_quantity = round_down_to_three_decimal_places(Decimal(request_data.get("quantity")))
 
-    if curr_quantity.exists():
-        pass
-    else:
-        print("매도할 수 없음")
-        response_data = {
-            "message": "Balance is not enough for sell."
-        }
-        json_data = json.dumps(response_data)
-        response = HttpResponse(json_data, content_type="application/json")
-        response.status_code = 402 # payment required
-
+        if not request_sell_quantity > current_balance:
+            print("매도할 수 있음")
+            # 매도 수량 * 단가 계산해서 내 총 krw에 저장
+            current_krw_balance = KRWBalance.objects.filter(user=request.user).first()
+            current_krw_balance.balance = round_down_to_three_decimal_places(
+                current_krw_balance.balance + Decimal(request_data.get("totalPrice")))
+            current_crypto_balance.balance = round_down_to_three_decimal_places(
+                current_crypto_balance.balance - request_sell_quantity)
+            current_crypto_balance.krw_investment = round_down_to_three_decimal_places(
+                current_crypto_balance.krw_investment - (current_crypto_balance.avg_buy_price * request_sell_quantity))
+            current_krw_balance.save()
+            current_crypto_balance.save()
+            # TradeHistory
+            new_trade_history = TradeHistory.objects.create(user=request.user,
+                                                            crypto_name=request_data.get("cryptoName"),
+                                                            quantity=request_sell_quantity,
+                                                            target_price=Decimal(request_data.get("targetPrice")),
+                                                            total_price=Decimal(request_data.get("totalPrice")),
+                                                            type="sell")
+            response_data = {
+                "message": "Sell succeed."
+            }
+            json_data = json.dumps(response_data)
+            response = HttpResponse(json, content_type="application/json")
+            response.status_code = 201
+            return response
+    print("매도할 수 없음")
+    response_data = {
+        "message": "Balance is not enough for sell."
+    }
+    json_data = json.dumps(response_data)
+    response = HttpResponse(json_data, content_type="application/json")
+    response.status_code = 402  # payment required
+    return response
