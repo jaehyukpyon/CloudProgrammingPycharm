@@ -40,18 +40,17 @@
                 {% endif %}
                 {% if not user.is_authenticated %}
                     <li class="nav-item">
-                        <a class="nav-link disabled" href="/mywallet/login">로그인</a>
+                        <a class="nav-link" href="/mywallet/login">로그인</a>
                     </li>
                 {% else %}
                     <li class="nav-item">
-                        <a class="nav-link disabled" href="/mywallet/logout">로그아웃</a>
+                        <a class="nav-link" href="/mywallet/logout" id="logout_tag">로그아웃</a>
                     </li>
                 {% endif %}
             </ul>
         </div>
     </div>
 </nav>
-
 {% block content %}{% endblock %}
 </body>
 {% block js_tags %}{% endblock %}

@@ -91,7 +91,7 @@
                 </tr>
                 <tr>
                     <th scope="row">수량</th>
-                    <td><input type="number" oninput="handleInput(event)" id="quantity"></td>
+                    <td><input type="number" id="quantity"></td>
                 </tr>
                 <tr>
                     <th scope="row">주문총액(KRW)</th>
@@ -156,7 +156,7 @@
                         </table>
                     </div>
                     <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">취소</button>
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" id="modal_close_btn">취소</button>
                         <button type="button" class="btn btn-primary" id="modal_order_confirm_button"><span
                                 id="modal_order_confirm_type"></span>주문하기
                         </button>
@@ -199,6 +199,7 @@
         let modal_total = document.getElementById("modal_total");
         let modal_order_confirm_type = document.getElementById("modal_order_confirm_type");
         let modal_order_confirm_button = document.getElementById("modal_order_confirm_button");
+        let modal_close_btn = document.getElementById("modal_close_btn");
 
         let socket;
         let KRW_PRICE;
@@ -425,13 +426,19 @@
             }
         }
 
+        quantity.addEventListener("input", handleInput);
+
         // 사용자가 매수 버튼을 눌렀을 경우 이벤트 처리
-        buy_button.addEventListener("click", function () {
+        buy_button.addEventListener("click", function (event) {
             const freezePrice = currHoga;
             modal_title.innerHTML = "매수";
             modal_krw.innerHTML = freezePrice;
             modal_quantity.innerHTML = quantity.value;
             modal_total.innerHTML = multiplyStrings(modal_krw.innerText, modal_quantity.innerText);
+            if (isNaN(modal_total.innerHTML)) {
+                alert("먼저 수량을 입력 수 매수/매도 버튼을 클릭하세요.");
+                window.location.reload();
+            }
             modal_order_confirm_type.innerHTML = "매수"
         });
 
@@ -450,7 +457,7 @@
                     "totalPrice": modal_total.innerText,
                 }),
             }).then(function (response) {
-                return response.json();
+                return response;
             }).catch(function () {
                 console.log("암호화폐 매수 중 error 발생...")
             });
@@ -483,11 +490,27 @@
                 console.log("사용자가 매수 confirm 버튼 클릭함.");
                 let response = await sendBuyRequest();
                 console.log(response);
+                if (response.status === 201) {
+                    alert("매수 주문이 정상적으로 체결되었습니다.");
+                    modal_close_btn.click();
+                    window.location.reload();
+                } else {
+                    alert("계좌 잔액(KRW)이 부족해 매수 주문을 체결할 수 없습니다.")
+                    modal_close_btn.click();
+                }
             } else if (modal_order_confirm_type.innerText === "매도") {
                 console.log("사용자가 매도 confirm 버튼 클릭함.");
                 let response = await sendSellRequest();
                 console.log("---------- 매도 주문 후 받은 response ----------");
                 console.log(response);
+                if (response.status === 201) {
+                    alert("매도 주문이 정상적으로 체결되었습니다.");
+                    modal_close_btn.click();
+                    window.location.reload();
+                } else {
+                    alert("해당 암호화폐 보유 수량이 부족하여 매도 주문을 체결할 수 없습니다.");
+                    modal_close_btn.click();
+                }
             }
         });
 
@@ -499,6 +522,10 @@
             modal_krw.innerHTML = freezePrice;
             modal_quantity.innerHTML = quantity.value;
             modal_total.innerHTML = multiplyStrings(modal_krw.innerText, modal_quantity.innerText);
+            if (isNaN(modal_total.innerHTML)) {
+                alert("먼저 수량을 입력 수 매수/매도 버튼을 클릭하세요.");
+                window.location.reload();
+            }
             modal_order_confirm_type.innerHTML = "매도"
         })
     </script>
