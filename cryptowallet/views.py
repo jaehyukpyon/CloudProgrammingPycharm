@@ -3,8 +3,10 @@ from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
 from .models import CryptoBalance, KRWBalance
 from cryptocurrency.models import TradeHistory
+from django.http import HttpResponse
 from datetime import datetime
 from decimal import Decimal
+import json
 
 
 def format_datetime(dt):
@@ -67,10 +69,32 @@ def logout_(request):
 
 
 def register_(request):
-    id = request.POST.get("id")
-    password = request.POST.get('password')
-    if User.objects.filter(username=id).exists():
+    if request.method == "GET":
+        return render(request, 'wallet/register.html')
+
+    decoded_data = request.body.decode("utf-8")
+    request_data = json.loads(decoded_data)
+    username = request_data.get("username")
+    password = request_data.get("password")
+    if User.objects.filter(username=username).exists():
         print("이미 존재하는 사람")
+        response_data = {
+            "message": "user already exists."
+        }
+        json_data = json.dumps(response_data)
+        response = HttpResponse(json_data, content_type='application/json')
+        response.status_code = 409  # conflict
+        return response
+    else:
+        user = User.objects.create_user(username=username, password=password, email=None)
+        KRWBalance.objects.create(user=user, balance=Decimal(0.000))
+        response_data = {
+            "message": "user successfully created"
+        }
+        json_data = json.dumps(response_data)
+        response = HttpResponse(json_data, content_type='application/json')
+        response.status_code = 201  # created
+        return response
 
 
 def history(request):
