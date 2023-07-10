@@ -1,8 +1,8 @@
 ---
 applications:
-- name: djangoblog-jaehyuk1
+- name: cryptocurrency
   buildpack: paketo-buildpacks/python
-  memory: 512M
+  memory: 256M
   instances: 1
   command: waitress-serve --port=8080 django_project.wsgi:application
 
